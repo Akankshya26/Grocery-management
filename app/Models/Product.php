@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\Uuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, Uuids;
     protected $fillable = [
         'category_id',
         'sub_category_id',
         'name',
+        'image',
         'price',
         'discount',
         'is_emi_available',
@@ -27,5 +29,9 @@ class Product extends Model
     public function prod()
     {
         return $this->belongsTo(SubCategory::class);
+    }
+    public function prodWishlist()
+    {
+        return $this->belongsTo(Wishlist::class);
     }
 }

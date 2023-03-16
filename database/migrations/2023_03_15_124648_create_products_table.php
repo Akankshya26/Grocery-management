@@ -16,7 +16,6 @@ return new class extends Migration
             $table->unsignedBigInteger('category_id');
             $table->unsignedBigInteger('sub_category_id');
             $table->string('name');
-            $table->text('image');
             $table->char('price');
             $table->char('discount');
             $table->boolean('is_emi_available');
@@ -25,6 +24,10 @@ return new class extends Migration
             $table->date('expires_at');
             $table->char('tax');
             $table->timestamps();
+
+
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->foreign('sub_category_id')->references('id')->on('sub_categories')->onDelete('cascade');
         });
     }
 

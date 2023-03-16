@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\ProductRating;
 
-class ProductRatingController extends Controller
+class WishlistController extends Controller
 {
     /**
-     * API of List Product Rating
+     * API of List Wishlist
      *
      *@param  \Illuminate\Http\Request  $request
-     *@return $productRating
+     *@return $wishlist
      */
     public function list(Request $request)
     {
@@ -24,10 +24,10 @@ class ProductRatingController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = ProductRating::query();
+        $query = Wishlist::query();
 
         if ($request->search) {
-            $query = $query->where('product_id', 'like', "%$request->search%");
+            $query = $query->where('user_id', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {
@@ -50,33 +50,39 @@ class ProductRatingController extends Controller
             'data'  => $productRating
         ];
 
-        return ok(' Product Rating  list', $data);
+        return ok(' User Wishlist list', $data);
     }
+    /**
+     * API of Create Wishlist
+     *
+     *@param  \Illuminate\Http\Request  $request
+     *@return $wishlist
+     */
     public function create(Request $request)
     {
         $this->validate($request, [
-            'product_id'    => 'required|exists:products,id',
-            'user_id'       => 'required|exists:users,id',
-            'rating'        => 'required|min:1,max:5'
+            'user_id'    => 'required|exists:users,id',
+            'product_id' => 'required|exists:products,id'
         ]);
-        $productRating = ProductRating::create($request->only('product_id', 'user_id', 'rating'));
+        // dd($request->only('category_id', 'name'));
+        $wishlist = Wishlist::create($request->only('user_id', 'product_id'));
 
-        return ok('product Rating  created successfully!', $productRating);
+        return ok('wishlist created successfully!', $wishlist);
     }
     /**
-     * API of get perticuler product Rating details
+     * API of get perticuler user Wishlist details
      *
      * @param  $id
-     * @return $productRating
+     * @return $wishlist
      */
     public function get($id)
     {
-        $productRating = ProductRating::with('user')->findOrFail($id);
+        $wishlist = Wishlist::with('userWishlist', 'productWishlist')->findOrFail($id);
 
-        return ok('product Rating get successfully', $productRating);
+        return ok('wishlist get successfully', $wishlist);
     }
     /**
-     * API of Update product Rating
+     * API of Update wishlist
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id
@@ -84,26 +90,25 @@ class ProductRatingController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'product_id'    => 'required|exists:products,id',
-            'user_id'       => 'required|exists:users,id',
-            'rating'        => 'required|min:1,max:5'
+            'user_id'    => 'required|exists:users,id',
+            'product_id' => 'required|exists:products,id'
         ]);
 
-        $productRating = ProductRating::findOrFail($id);
-        $productRating->update($request->only('product_id', 'user_id', 'rating'));
+        $wishlist = Wishlist::findOrFail($id);
+        $wishlist->update($request->only('user_id', 'product_id'));
 
-        return ok('product Rating  updated successfully!', $productRating);
+        return ok('wishlist updated successfully!', $wishlist);
     }
     /**
-     * API of Delete Product Rating
+     * API of Delete wishlist
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id
      */
     public function delete($id)
     {
-        ProductRating::findOrFail($id)->delete();
+        Wishlist::findOrFail($id)->delete();
 
-        return ok('product Rating deleted successfully');
+        return ok('wishlist deleted successfully');
     }
 }
