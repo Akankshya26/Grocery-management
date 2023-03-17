@@ -1,9 +1,8 @@
 <?php
 
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\V1\OrderItemsController;
 use App\Http\Controllers\V1\OrderController;
-use App\Models\SubCategory;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\V1\UserController;
 use App\Http\Controllers\V1\ImageController;
@@ -31,11 +30,19 @@ use App\Http\Controllers\V1\WishlistController;
 Route::prefix('V1')->group(function () {
     Route::post('register', [UserController::class, 'register']);
     Route::post('login', [UserController::class, 'login']);
+    //open api for customer(listing)
+    Route::post('Category_list', [CategoryController::class, 'list']);
+    Route::post('subCategoy_list', [SubCategoryController::class, 'list']);
+    Route::post('product_list', [ProductController::class, 'list']);
+    // Route::post('wishlist_list', [WishlistController::class, 'list']);
+    // Route::post('cartIteam_list', [CartItemController::class, 'list']);
+    // Route::post('orderItem_list', [OrderItemsController::class, 'list']);
+
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', [UserController::class, 'logout']);
         Route::post('update/{id}', [UserController::class, 'update']);
         Route::controller(CategoryController::class)->prefix('category')->group(function () {
-            Route::post('list',  'list');
+            // Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');
@@ -49,7 +56,7 @@ Route::prefix('V1')->group(function () {
             Route::post('delete/{id}', 'delete')->middleware('check:type,admin');
         });
         Route::controller(SubCategoryController::class)->prefix('subCategory')->group(function () {
-            Route::post('list',  'list');
+            // Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');
@@ -70,19 +77,13 @@ Route::prefix('V1')->group(function () {
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(ProductController::class)->prefix('Product')->group(function () {
-            Route::post('list',  'list')->middleware('check:type,partner');
+            Route::post('list',  'list')->middleware('check:type,partner|customer');
             Route::post('create', 'create')->middleware('check:type,partner');
             Route::get('get/{id}',  'get')->middleware('check:type,partner');
             Route::post('update/{id}', 'update')->middleware('check:type,partner');
             Route::post('delete/{id}', 'delete')->middleware('check:type,partner');
         });
-        Route::controller(ImageController::class)->prefix('Image')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
-        });
+
         Route::controller(ProductRatingController::class)->prefix('rating')->group(function () {
             Route::post('list',  'list');
             Route::post('create', 'create');
@@ -105,13 +106,20 @@ Route::prefix('V1')->group(function () {
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(OrderController::class)->prefix('order')->group(function () {
-            Route::post('list',  'list');
+            // Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(OrderItemsController::class)->prefix('orderItem')->group(function () {
+            Route::post('list',  'list');
+            Route::post('create', 'create');
+            Route::get('get/{id}',  'get');
+            Route::post('update/{id}', 'update');
+            Route::post('delete/{id}', 'delete');
+        });
+        Route::controller(InvoiceController::class)->prefix('invoice')->group(function () {
             Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');

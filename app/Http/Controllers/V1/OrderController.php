@@ -76,7 +76,7 @@ class OrderController extends Controller
         return ok('order created successfully!', $order);
     }
     /**
-     * API of get perticuler product Rating details
+     * API of get perticuler order details
      *
      * @param  $id
      * @return $order
@@ -85,7 +85,7 @@ class OrderController extends Controller
     {
         $order = Order::with('userOrder', 'productOrder')->findOrFail($id);
 
-        return ok('product Rating get successfully', $order);
+        return ok('order get successfully', $order);
     }
     /**
      * API of Update order

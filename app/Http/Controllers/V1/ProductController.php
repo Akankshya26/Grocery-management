@@ -67,44 +67,43 @@ class ProductController extends Controller
             'name'             => 'required|unique:sub_categories,name',
             'image.*'          => 'required',
             'price'            => 'required|integer',
-            'discount'         => 'required|integer',
+            'discount'         => 'required|numeric|between:0,99.99',
             'is_emi_available' => 'required|boolean',
             'is_available'     => 'required|boolean',
             'manufactured_at'  => 'required|date',
             'expires_at'       => 'required|date',
-            'tax'              => 'required|integer'
+            'tax'              => 'required|numeric|between:0,99.99'
         ]);
-        // dd($request->image);
-        // dd($request->only('category_id', 'name'));
+        // dd($request->all());
+        $total = ($request->price + $request->tax) - $request->discount;
         $product = Product::create($request->only(
             'category_id',
             'sub_category_id',
             'name',
-            'price',
-            'discount',
             'discount',
             'is_emi_available',
             'is_available',
             'manufactured_at',
             'expires_at',
             'tax'
-        ));
-        // dd($product);
+        ) + ['price' => $total]);
         $image = array();
         if ($request->hasFile('image')) {
+
             // dd($request->image);
             foreach ($request->image as $file) {
                 $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
                 $upload_path =  'images/' . $product->id;
                 $file->storeAs($upload_path, $image_name);
-                $images[] = [
+                $image[] = [
                     'product_id' => $product->id,
                     'image_name' => $image_name,
                 ];
             }
         }
-        $product->img()->createMany($images);
-        return ok('Product created successfully!', $product);
+        $product->img()->createMany($image);
+        // dd($product->img()->createMany($image));
+        return ok('Product created successfully!',  $product->load('img'));
     }
     public function get($id)
     {
@@ -126,28 +125,27 @@ class ProductController extends Controller
             'name'             => 'required|unique:sub_categories,name',
             'image.*'          => 'required',
             'price'            => 'required|integer',
-            'discount'         => 'required|integer',
+            'discount'         => 'required|numeric|between:0,99.99',
             'is_emi_available' => 'required|boolean',
             'is_available'     => 'required|boolean',
             'manufactured_at'  => 'required|date',
             'expires_at'       => 'required|date',
-            'tax'              => 'required|integer'
+            'tax'              => 'required|numeric|between:0,99.99'
         ]);
 
+        $total = ($request->price + $request->tax) - $request->discount;
         $product = Product::findOrFail($id);
-        $product->updateOrCreate($request->only(
+        $product->update($request->only(
             'category_id',
             'sub_category_id',
             'name',
-            'price',
-            'discount',
             'discount',
             'is_emi_available',
             'is_available',
             'manufactured_at',
             'expires_at',
             'tax'
-        ));
+        ) + ['price' => $total]);
         // dd($product);
         $image = array();
         if ($request->hasFile('image')) {
@@ -159,14 +157,14 @@ class ProductController extends Controller
                 $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
                 // $upload_path =  'images/' . $product->id;
                 $file->storeAs($upload_path, $image_name);
-                $images[] = [
+                $image[] = [
                     'product_id' => $product->id,
                     'image_name' => $image_name,
                 ];
             }
         }
-        $product->img()->createMany($images);
-        return ok('product updated successfully!', $product);
+        $product->img()->createMany($image);
+        return ok('product updated successfully!', $product->load('img'));
     }
     /**
      * API of Delete product
@@ -176,7 +174,9 @@ class ProductController extends Controller
      */
     public function delete($id)
     {
-        Product::with('img')->findOrFail($id)->delete();
+        $product = Product::findOrFail($id);
+        $product->img()->delete();
+        $product->delete();
 
         return ok('Product iteam deleted successfully');
     }

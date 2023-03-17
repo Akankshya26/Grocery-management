@@ -50,7 +50,7 @@ class AddressTypeController extends Controller
             'data'  => $addressType
         ];
 
-        return ok('category  list', $data);
+        return ok('Address Type  list', $data);
     }
     /**
      * API of Create Address Type
@@ -81,7 +81,7 @@ class AddressTypeController extends Controller
         return ok('Address Type get successfully', $addressType);
     }
     /**
-     * API of Update category
+     * API of Update Address Type
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id
@@ -98,7 +98,7 @@ class AddressTypeController extends Controller
         return ok('Address Type updated successfully!', $addressType);
     }
     /**
-     * API of Delete Category
+     * API of Delete Address Type
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id

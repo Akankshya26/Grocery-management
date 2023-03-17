@@ -13,6 +13,7 @@ class Category extends Model
         'name'
     ];
 
+    /* Relations */
     public function subCategory()
     {
         return $this->hasMany(SubCategory::class);

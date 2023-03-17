@@ -18,6 +18,8 @@ class OrderItems extends Model
         'is_gift'
 
     ];
+
+    /* Relations */
     public function orderItems()
     {
         return $this->belongsTo(Order::class, 'order_id');

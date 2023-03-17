@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Product;
 use App\Models\OrderItems;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -64,13 +65,15 @@ class OrderItemsController extends Controller
             'order_id'     => 'required|exists:orders,id',
             'product_id'  => 'required|exists:Products,id',
             'amount'      => 'required|numeric',
-            'discount'    => 'required|numeric',
-            'tax'         => 'required|numeric',
+            'discount'    => 'required|numeric|between:0,99.99',
+            'tax'         => 'required|numeric|between:0,99.99',
             'quantity'    => 'required|numeric',
             'is_gift'     => 'nullable|boolean'
         ]);
-        // dd($request->only('category_id', 'name'));
-        $orderIteam = OrderItems::create($request->only('order_id', 'product_id', 'amount', 'discount', 'tax', 'quantity', 'is_gift'));
+        $product = Product::findOrFail($request->product_id);
+        $total = (($product->price + $request->tax) - $request->discount) * $request->quantity;
+
+        $orderIteam = OrderItems::create($request->only('order_id', 'product_id', 'discount', 'tax', 'quantity', 'is_gift') + ['amount' => $total]);
 
         return ok('order iteam created successfully!', $orderIteam);
     }
@@ -98,14 +101,17 @@ class OrderItemsController extends Controller
             'order_id'     => 'required|exists:orders,id',
             'product_id'  => 'required|exists:Products,id',
             'amount'      => 'required|numeric',
-            'discount'    => 'required|numeric',
-            'tax'         => 'required|numeric',
+            'discount'    => 'required|numeric|between:0,99.99',
+            'tax'         => 'required|numeric|between:0,99.99',
             'quantity'    => 'required|numeric',
             'is_gift'     => 'nullable|boolean'
         ]);
 
         $cartIteam = OrderItems::findOrFail($id);
-        $cartIteam->update($request->only('order_id', 'product_id', 'amount', 'discount', 'tax', 'quantity', 'is_gift'));
+        $product = Product::findOrFail($request->product_id);
+        $total = (($product->price + $request->tax) - $request->discount) * $request->quantity;
+
+        $cartIteam->update($request->only('order_id', 'product_id', 'discount', 'tax', 'quantity', 'is_gift') + ['amount' => $total]);
 
         return ok('Order iteam  updated successfully!', $cartIteam);
     }

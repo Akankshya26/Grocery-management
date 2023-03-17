@@ -17,6 +17,8 @@ class Order extends Model
         'expected_delivery_date',
         'delivery_date'
     ];
+
+    /* Relations */
     public function userOrder()
     {
         return $this->belongsTo(User::class, 'user_id');

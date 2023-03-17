@@ -22,13 +22,15 @@ class Product extends Model
         'expires_at',
         'tax'
     ];
+
+    /* Relations */
     public function img()
     {
         return $this->hasMany(ImageProduct::class, 'product_id');
     }
     public function prod()
     {
-        return $this->belongsTo(SubCategory::class);
+        return $this->belongsTo(Category::class);
     }
     public function prodWishlist()
     {

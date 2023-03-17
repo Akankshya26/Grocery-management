@@ -77,7 +77,7 @@ class CategoryController extends Controller
      */
     public function get($id)
     {
-        $category = Category::with('subCategory')->findOrFail($id);
+        $category = Category::with('subCategory', 'products')->findOrFail($id);
 
         return ok('Category get successfully', $category);
     }

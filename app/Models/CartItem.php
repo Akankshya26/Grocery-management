@@ -16,6 +16,8 @@ class CartItem extends Model
         'tax',
         'quantity'
     ];
+
+    /* Relations */
     public function userCart()
     {
         return $this->belongsTo(User::class, 'user_id');

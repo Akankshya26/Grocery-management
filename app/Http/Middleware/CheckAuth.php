@@ -13,13 +13,25 @@ class CheckAuth
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, $types): Response
     {
-        if (auth()->user()->type == 'admin') {
-            return $next($request);
-        } else if (auth()->user()->type == 'partner') {
-            return $next($request);
-        } else {
+        // if (auth()->user()->type == 'admin') {
+        //     return $next($request);
+        // } else if (auth()->user()->type == 'partner' || auth()->user()->type == 'customer') {
+        //     return $next($request);
+        // } else {
+        //     return response()->json(['not access']);
+        // }
+
+        $types = explode('|', $types);
+        $flag = false;
+        foreach ($types as $type) {
+            if ($type == auth()->user()->type) {
+                $flag = true;
+                return $next($request);
+            }
+        }
+        if (!$flag) {
             return response()->json(['not access']);
         }
     }

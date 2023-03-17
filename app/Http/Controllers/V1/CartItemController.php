@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Product;
+use App\Models\CartItem;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\CartItem;
 
 class CartItemController extends Controller
 {
@@ -44,10 +45,11 @@ class CartItemController extends Controller
 
         /* Get records */
         $cartIteam = $query->get();
-
+        $sum = CartItem::sum('amount');
         $data = [
             'count' => $count,
-            'data'  => $cartIteam
+            'data'  => $cartIteam,
+            'Total_amount' => $sum
         ];
 
         return ok(' cart iteam  list', $data);
@@ -64,12 +66,15 @@ class CartItemController extends Controller
             'user_id'     => 'required|exists:users,id',
             'product_id'  => 'required|exists:Products,id',
             'amount'      => 'required|numeric',
-            'discount'    => 'required|numeric',
-            'tax'         => 'required|numeric',
+            'discount'    => 'required|numeric|between:0,99.99',
+            'tax'         => 'required|numeric|between:0,99.99',
             'quantity'    => 'required|numeric',
         ]);
-        // dd($request->only('category_id', 'name'));
-        $cartIteam = CartItem::create($request->only('user_id', 'product_id', 'amount', 'discount', 'tax', 'quantity'));
+        $product = Product::findOrFail($request->product_id);
+        $total = (($product->price + $request->tax) - $request->discount) * $request->quantity;
+        $cartIteam = CartItem::create($request->only('user_id', 'product_id', 'discount', 'tax', 'quantity')
+            + ['amount' => $total]);
+
 
         return ok('cart iteam created successfully!', $cartIteam);
     }

@@ -27,7 +27,7 @@ class SubCategoryController extends Controller
         $query = SubCategory::query();
 
         if ($request->search) {
-            $query = $query->where('category_id', 'like', "%$request->search%");
+            $query = $query->where('name', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {

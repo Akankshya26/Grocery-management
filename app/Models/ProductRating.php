@@ -13,6 +13,8 @@ class ProductRating extends Model
         'user_id',
         'rating'
     ];
+
+    /* Relations */
     public function user()
     {
         return $this->belongsTo(User::class);
