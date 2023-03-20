@@ -40,10 +40,10 @@ Route::prefix('V1')->group(function () {
         Route::post('update/{id}', [UserController::class, 'update']);
         Route::controller(CategoryController::class)->prefix('category')->group(function () {
             // Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            Route::post('create', 'create')->middleware('check:type,admin|parter');
+            Route::get('get/{id}',  'get')->middleware('check:type,admin|parter');;
+            Route::post('update/{id}', 'update')->middleware('check:type,admin|parter');;
+            Route::post('delete/{id}', 'delete')->middleware('check:type,admin|parter');;
         });
         Route::controller(PartnerController::class)->prefix('partner')->group(function () {
             Route::post('list',  'list')->middleware('check:type,admin');
@@ -54,10 +54,10 @@ Route::prefix('V1')->group(function () {
         });
         Route::controller(SubCategoryController::class)->prefix('subCategory')->group(function () {
             // Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            Route::post('create', 'create')->middleware('check:type,admin|parter');;
+            Route::get('get/{id}',  'get')->middleware('check:type,admin|parter');;
+            Route::post('update/{id}', 'update')->middleware('check:type,admin|parter');;
+            Route::post('delete/{id}', 'delete')->middleware('check:type,admin|parter');;
         });
         Route::controller(AddressTypeController::class)->prefix('AddressType')->group(function () {
             Route::post('list',  'list');
