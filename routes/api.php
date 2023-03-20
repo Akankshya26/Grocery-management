@@ -96,7 +96,7 @@ Route::prefix('V1')->group(function () {
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(CartItemController::class)->prefix('cart')->group(function () {
-            Route::post('list',  'list')->middleware('check:type,partner|customer');
+            Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');

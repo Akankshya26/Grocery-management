@@ -12,6 +12,7 @@ class Order extends Model
         'user_id',
         'product_id',
         'user_address_id',
+        'cart_item_id',
         'status',
         'is_cod',
         'is_placed',

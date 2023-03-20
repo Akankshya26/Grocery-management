@@ -64,6 +64,7 @@ class OrderController extends Controller
         $this->validate($request, [
             'user_id'                => 'required|exists:users,id',
             'product_id'             => 'required|exists:products,id',
+            'cart_item_id'           => 'required|exists:cart_items,id',
             'user_address_id'        => 'required|exists:user_addresses,id',
             'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
             'is_cod'                 => 'nullable|boolean',
@@ -72,15 +73,17 @@ class OrderController extends Controller
             'delivery_date'          => 'required|date'
 
         ]);
+        $cart_items = CartItem::findOrFail($request->cart_item_id);
+        // dd($cart_items->product_id);
+        if ($request->is_placed == 1) {
+            if ($request->product_id == $cart_items->product_id) {
+                $cart_items->delete();
+            }
+        }
 
-        $order = Order::create($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
+        $order = Order::create($request->only('user_id', 'product_id', 'cart_item_id', 'user_address_id', 'status', 'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
 
         return ok('order created successfully!', $order);
-
-        $cart_items = CartItem::findOrFail($request->cart_item_id);
-        if ($request->is_placed == 1) {
-            $cart_items->delete();
-        }
     }
 
     /**

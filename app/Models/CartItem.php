@@ -17,6 +17,7 @@ class CartItem extends Model
         'tax',
         'quantity'
     ];
+    protected $dates = ['deleted_at'];
 
     /* Relations */
     public function userCart()
@@ -26,5 +27,9 @@ class CartItem extends Model
     public function productCart()
     {
         return $this->hasMany(Product::class, 'product_id', 'id');
+    }
+    public function AbcdCart()
+    {
+        return $this->hasMany(Order::class);
     }
 }

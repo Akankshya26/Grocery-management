@@ -16,6 +16,8 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('user_address_id');
+            $table->unsignedBigInteger('cart_item_id');
+
             $table->enum('Status', ['Pending', 'Dispached', 'in_transit', 'Delivered']);
             $table->boolean('is_cod');
             $table->boolean('is_placed');
@@ -26,6 +28,7 @@ return new class extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
             $table->foreign('user_address_id')->references('id')->on('user_addresses')->onDelete('cascade');
+            $table->foreign('cart_item_id')->references('id')->on('cart_items')->onDelete('cascade');
         });
     }
 
