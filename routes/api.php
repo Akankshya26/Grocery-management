@@ -34,9 +34,6 @@ Route::prefix('V1')->group(function () {
     Route::post('Category_list', [CategoryController::class, 'list']);
     Route::post('subCategoy_list', [SubCategoryController::class, 'list']);
     Route::post('product_list', [ProductController::class, 'list']);
-    // Route::post('wishlist_list', [WishlistController::class, 'list']);
-    // Route::post('cartIteam_list', [CartItemController::class, 'list']);
-    // Route::post('orderItem_list', [OrderItemsController::class, 'list']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', [UserController::class, 'logout']);
@@ -92,14 +89,14 @@ Route::prefix('V1')->group(function () {
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(WishlistController::class)->prefix('wishlist')->group(function () {
-            Route::post('list',  'list');
+            Route::post('list',  'list')->middleware('check:type,partner|customer');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(CartItemController::class)->prefix('cart')->group(function () {
-            Route::post('list',  'list');
+            Route::post('list',  'list')->middleware('check:type,partner|customer');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');

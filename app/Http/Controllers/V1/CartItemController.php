@@ -65,14 +65,14 @@ class CartItemController extends Controller
         $this->validate($request, [
             'user_id'     => 'required|exists:users,id',
             'product_id'  => 'required|exists:Products,id',
-            'amount'      => 'required|numeric',
-            'discount'    => 'required|numeric|between:0,99.99',
-            'tax'         => 'required|numeric|between:0,99.99',
+            // 'amount'      => 'required|numeric',
+            // 'discount'    => 'required|numeric|between:0,99.99',
+            // 'tax'         => 'required|numeric|between:0,99.99',
             'quantity'    => 'required|numeric',
         ]);
         $product = Product::findOrFail($request->product_id);
-        $total = (($product->price + $request->tax) - $request->discount) * $request->quantity;
-        $cartIteam = CartItem::create($request->only('user_id', 'product_id', 'discount', 'tax', 'quantity')
+        $total = (($product->price + $product->tax) - $product->discount) * $request->quantity;
+        $cartIteam = CartItem::create($request->only('user_id', 'product_id', 'quantity')
             + ['amount' => $total]);
 
 

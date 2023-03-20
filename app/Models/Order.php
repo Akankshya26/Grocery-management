@@ -14,6 +14,7 @@ class Order extends Model
         'user_address_id',
         'status',
         'is_cod',
+        'is_placed',
         'expected_delivery_date',
         'delivery_date'
     ];
@@ -30,5 +31,9 @@ class Order extends Model
     public function OrderItm()
     {
         return $this->hasMany(Order::class, 'order_id');
+    }
+    public function CArts()
+    {
+        return $this->belongsTo(CartItem::class);
     }
 }

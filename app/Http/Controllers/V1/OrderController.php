@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V1;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\CartItem;
 
 class OrderController extends Controller
 {
@@ -66,15 +67,22 @@ class OrderController extends Controller
             'user_address_id'        => 'required|exists:user_addresses,id',
             'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
             'is_cod'                 => 'nullable|boolean',
+            'is_placed'              => 'nullable|boolean',
             'expected_delivery_date' => 'required|date',
             'delivery_date'          => 'required|date'
 
         ]);
 
-        $order = Order::create($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'expected_delivery_date', 'delivery_date'));
+        $order = Order::create($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
 
         return ok('order created successfully!', $order);
+
+        $cart_items = CartItem::findOrFail($request->cart_item_id);
+        if ($request->is_placed == 1) {
+            $cart_items->delete();
+        }
     }
+
     /**
      * API of get perticuler order details
      *
