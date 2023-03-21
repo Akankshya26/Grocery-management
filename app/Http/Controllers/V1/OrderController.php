@@ -112,13 +112,20 @@ class OrderController extends Controller
             'user_address_id'        => 'required|exists:user_addresses,id',
             'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
             'is_cod'                 => 'nullable|boolean',
-            'expected_delivery_date' => 'required|date_format:m/d/Y',
-            'delivery_date'          => 'required|date_format:m/d/Y'
+            'is_placed'              => 'nullable|boolean',
+            'expected_delivery_date' => 'required|date',
+            'delivery_date'          => 'required|date'
 
         ]);
-
+        $cart_items = CartItem::findOrFail($request->cart_item_id);
+        // dd($cart_items->product_id);
+        if ($request->is_placed == 1) {
+            if ($request->product_id == $cart_items->product_id) {
+                $cart_items->delete();
+            }
+        }
         $order = Order::findOrFail($id);
-        $order->update($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'expected_delivery_date', 'delivery_date'));
+        $order->update($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
 
         return ok('order updated successfully!', $order);
     }
@@ -144,7 +151,7 @@ class OrderController extends Controller
     public function statusUpdate(Request $request, $id)
     {
         $this->validate($request, [
-            'status'                 => 'required|in:Dispached,in_transit,Delivered',
+            'status'    => 'required|in:Dispached,in_transit,Delivered',
         ]);
 
         $order = Order::findOrFail($id);
