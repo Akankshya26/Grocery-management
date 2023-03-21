@@ -45,7 +45,7 @@ class UserAddressController extends Controller
         $userAddress = $query->get();
 
         $data = [
-            'count' => $count,
+            'count'           => $count,
             'user addresses'  => $userAddress
         ];
 

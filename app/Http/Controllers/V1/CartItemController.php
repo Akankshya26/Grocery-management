@@ -47,8 +47,8 @@ class CartItemController extends Controller
         $cartIteam = $query->get();
         $sum = CartItem::sum('amount');
         $data = [
-            'count' => $count,
-            'cart items'  => $cartIteam,
+            'count'        => $count,
+            'cart items'   => $cartIteam,
             'Total_amount' => $sum
         ];
 

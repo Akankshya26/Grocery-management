@@ -47,7 +47,7 @@ class PartnerController extends Controller
         $partner = $query->get();
 
         $data = [
-            'count' => $count,
+            'count'     => $count,
             'partners'  => $partner
         ];
 

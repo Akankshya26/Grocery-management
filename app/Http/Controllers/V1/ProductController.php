@@ -49,7 +49,7 @@ class ProductController extends Controller
 
 
         $data = [
-            'count' => $count,
+            'count'     => $count,
             'products'  => $product
         ];
 

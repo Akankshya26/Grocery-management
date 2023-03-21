@@ -47,7 +47,7 @@ class OrderController extends Controller
         $order = $query->get();
 
         $data = [
-            'count' => $count,
+            'count'   => $count,
             'orders'  => $order
         ];
 

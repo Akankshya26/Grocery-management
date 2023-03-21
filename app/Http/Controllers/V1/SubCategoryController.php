@@ -48,7 +48,7 @@ class SubCategoryController extends Controller
 
 
         $data = [
-            'count' => $count,
+            'count'           => $count,
             'sub Categories'  => $subCategory
         ];
 

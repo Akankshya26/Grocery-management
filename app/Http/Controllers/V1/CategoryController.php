@@ -14,7 +14,7 @@ class CategoryController extends Controller
      *
      *@param  \Illuminate\Http\Request  $request
      *@return $category
-     */
+     */ss
     public function list(Request $request)
     {
         $this->validate($request, [
@@ -45,7 +45,7 @@ class CategoryController extends Controller
         /* Get records */
         $category = $query->get();
         $data = [
-            'count' => $count,
+            'count'       => $count,
             'categories'  => $category
         ];
         // dd($data);

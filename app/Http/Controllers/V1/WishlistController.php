@@ -46,7 +46,7 @@ class WishlistController extends Controller
         $wishlist = $query->get();
 
         $data = [
-            'count' => $count,
+            'count'      => $count,
             'wishlists'  => $wishlist
         ];
 

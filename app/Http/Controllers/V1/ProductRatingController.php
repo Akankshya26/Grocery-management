@@ -46,7 +46,7 @@ class ProductRatingController extends Controller
         $productRating = $query->get();
 
         $data = [
-            'count' => $count,
+            'count'            => $count,
             'product Ratings'  => $productRating
         ];
 
