@@ -21,10 +21,10 @@ class UserController extends Controller
     {
         //validation
         $request->validate([
-            'first_name'        => 'required|string|max:36',
-            'last_name'         => 'required|string|max:36',
+            'first_name'        => 'required|alpha|max:36',
+            'last_name'         => 'required|alpha|max:36',
             'email'             => 'required|email|unique:users,email|max:255',
-            'password'          => 'required|max:255',
+            'password'          => 'required|max:8',
             'type'              => 'in:customer', //default customer
             // 'organization_name' => 'required_if:type,partner',
             // 'rating'            => 'required_if:type,partner',
@@ -38,17 +38,18 @@ class UserController extends Controller
 
         return ok("User registered successfully!", $data);
     }
+
     /**
      * API of User login
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return $token
+     * @return json $data
      */
     public function login(Request $request)
     {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required',
+            'password' => 'required|max:8',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -67,6 +68,7 @@ class UserController extends Controller
             return error("Password is incorrect");
         }
     }
+
     /**
      * API of User Logout
      *
@@ -88,20 +90,29 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'first_name'        => 'required|string|max:36',
-            'last_name'         => 'required|string|max:36',
-            'email'             => 'required|email|unique:users,email|max:255',
-            'password'          => 'required|max:255',
+            'first_name'        => 'nullable|alpha|max:36',
+            'last_name'         => 'nullable|alpha|max:36',
+            'email'             => 'nullable|email|unique:users,email|max:255',
             'type'              => 'in:admin,partner,customer', //default customer
             'organization_name' => 'required_if:type,partner',
             'rating'            => 'required_if:type,partner',
         ]);
-
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating') + [
-            'password' => Hash::make($request->password)
-        ]);
+        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating'));
 
         return ok('User updated successfully!', $user);
+    }
+
+    /**
+     * API of Delete User
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  $id
+     */
+    public function delete($id)
+    {
+        User::findOrFail($id)->delete();
+
+        return ok('User deleted successfully');
     }
 }

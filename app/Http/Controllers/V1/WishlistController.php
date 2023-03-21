@@ -43,15 +43,16 @@ class WishlistController extends Controller
         }
 
         /* Get records */
-        $productRating = $query->get();
+        $wishlist = $query->get();
 
         $data = [
             'count' => $count,
-            'data'  => $productRating
+            'wishlists'  => $wishlist
         ];
 
         return ok(' User Wishlist list', $data);
     }
+
     /**
      * API of Create Wishlist
      *
@@ -69,6 +70,7 @@ class WishlistController extends Controller
 
         return ok('wishlist created successfully!', $wishlist);
     }
+
     /**
      * API of get perticuler user Wishlist details
      *
@@ -81,6 +83,7 @@ class WishlistController extends Controller
 
         return ok('wishlist get successfully', $wishlist);
     }
+
     /**
      * API of Update wishlist
      *
@@ -99,6 +102,7 @@ class WishlistController extends Controller
 
         return ok('wishlist updated successfully!', $wishlist);
     }
+
     /**
      * API of Delete wishlist
      *

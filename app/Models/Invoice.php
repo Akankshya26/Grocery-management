@@ -8,14 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 class Invoice extends Model
 {
     use HasFactory;
+
+    /* Fillable */
     protected $fillable = [
         'user_id',
         'product_id',
         'order_item_id',
         'total_amount',
-        'tax',
-        'discount',
-        'quantity',
         'payment_status', //'pending' ,'done'
         'is_cod',
         'expected_delivery_date',
@@ -28,7 +27,7 @@ class Invoice extends Model
     }
     public function OrderInvoice()
     {
-        return $this->belongsTo(OrderItems::class);
+        return $this->belongsTo(OrderItems::class, 'order_item_id');
     }
     public function productInvoice()
     {

@@ -46,7 +46,7 @@ class UserAddressController extends Controller
 
         $data = [
             'count' => $count,
-            'data'  => $userAddress
+            'user addresses'  => $userAddress
         ];
 
         return ok(' user address  list', $data);
@@ -64,7 +64,7 @@ class UserAddressController extends Controller
             'address_type_id' => 'required|exists:address_types,id',
             'address1'        => 'required|string|max:50',
             'address2'        => 'required|string|max:50',
-            'zip_code'        => 'nullable|integer|min:6',
+            'zip_code'        => 'nullable|integer|size:6',
             'is_primary'      => 'nullable|boolean'
         ]);
 
@@ -80,9 +80,9 @@ class UserAddressController extends Controller
      */
     public function get($id)
     {
-        $productRating = UserAddress::findOrFail($id);
+        $userAddress = UserAddress::findOrFail($id);
 
-        return ok('user address get successfully', $productRating);
+        return ok('user address get successfully', $userAddress);
     }
     /**
      * API of Update user address
@@ -97,17 +97,17 @@ class UserAddressController extends Controller
             'address_type_id' => 'required|exists:address_types,id',
             'address1'        => 'required|string|max:50',
             'address2'        => 'required|string|max:50',
-            'zip_code'        => 'nullable|integer|min:6',
+            'zip_code'        => 'nullable|integer|size:6',
             'is_primary'      => 'nullable|boolean'
         ]);
 
-        $category = UserAddress::findOrFail($id);
-        $category->update($request->only('user_id', 'address_type_id', 'address1', 'address2', 'zip_code', 'is_primary'));
+        $userAddress = UserAddress::findOrFail($id);
+        $userAddress->update($request->only('user_id', 'address_type_id', 'address1', 'address2', 'zip_code', 'is_primary'));
 
-        return ok('user address updated successfully!', $category);
+        return ok('user address updated successfully!', $userAddress);
     }
     /**
-     * API of Delete Sub Category
+     * API of Delete user address
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id

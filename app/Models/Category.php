@@ -9,6 +9,7 @@ class Category extends Model
 {
     use HasFactory;
 
+    /* Fillable */
     protected $fillable = [
         'name'
     ];
@@ -16,7 +17,7 @@ class Category extends Model
     /* Relations */
     public function subCategory()
     {
-        return $this->hasMany(SubCategory::class);
+        return $this->hasMany(SubCategory::class, 'category_id');
     }
     public function products()
     {

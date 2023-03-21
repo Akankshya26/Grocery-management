@@ -26,7 +26,6 @@ class CategoryController extends Controller
         ]);
 
         $query = Category::query();
-
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
         }
@@ -45,14 +44,15 @@ class CategoryController extends Controller
 
         /* Get records */
         $category = $query->get();
-
         $data = [
             'count' => $count,
-            'data'  => $category
+            'categories'  => $category
         ];
+        // dd($data);
 
         return ok('category  list', $data);
     }
+
     /**
      * API of Create category
      *
@@ -64,11 +64,10 @@ class CategoryController extends Controller
         $this->validate($request, [
             'name' => 'required|unique:categories,name'
         ]);
-
         $category = Category::create($request->only('name'));
-
         return ok('Category created successfully!', $category);
     }
+
     /**
      * API of get perticuler Category details
      *
@@ -81,6 +80,7 @@ class CategoryController extends Controller
 
         return ok('Category get successfully', $category);
     }
+
     /**
      * API of Update category
      *
@@ -98,6 +98,7 @@ class CategoryController extends Controller
 
         return ok('category updated successfully!', $category);
     }
+
     /**
      * API of Delete Category
      *

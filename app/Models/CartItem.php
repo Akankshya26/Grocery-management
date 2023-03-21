@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CartItem extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    /* Fillable */
+
     protected $fillable = [
         'user_id',
         'product_id',
@@ -17,7 +19,6 @@ class CartItem extends Model
         'tax',
         'quantity'
     ];
-    protected $dates = ['deleted_at'];
 
     /* Relations */
     public function userCart()
@@ -26,9 +27,9 @@ class CartItem extends Model
     }
     public function productCart()
     {
-        return $this->hasMany(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
-    public function AbcdCart()
+    public function OrderCart()
     {
         return $this->hasMany(Order::class);
     }

@@ -10,6 +10,8 @@ class ImageProduct extends Model
     use HasFactory;
 
     public $timestamps = false;
+
+    /* Fillable */
     protected $fillable = [
         'product_id',
         'image_name',

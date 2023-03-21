@@ -28,7 +28,7 @@ class CartItemController extends Controller
         $query = CartItem::query();
 
         if ($request->search) {
-            $query = $query->where('user_id', 'like', "%$request->search%");
+            $query = $query->where('product_id', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {
@@ -48,12 +48,13 @@ class CartItemController extends Controller
         $sum = CartItem::sum('amount');
         $data = [
             'count' => $count,
-            'data'  => $cartIteam,
+            'cart items'  => $cartIteam,
             'Total_amount' => $sum
         ];
 
         return ok(' cart iteam  list', $data);
     }
+
     /**
      * API of Create cart items
      *
@@ -68,7 +69,7 @@ class CartItemController extends Controller
             // 'amount'      => 'required|numeric',
             // 'discount'    => 'required|numeric|between:0,99.99',
             // 'tax'         => 'required|numeric|between:0,99.99',
-            'quantity'    => 'required|numeric',
+            'quantity'    => 'required|max:10|numeric',
         ]);
         $product = Product::findOrFail($request->product_id);
         $total = (($product->price + $product->tax) - $product->discount) * $request->quantity;
@@ -76,13 +77,14 @@ class CartItemController extends Controller
             + ['amount' => $total]);
 
 
-        return ok('cart iteam created successfully!', $cartIteam);
+        return ok('cart iteam created successfully!', $cartIteam->load('productCart'));
     }
+
     /**
      * API of get perticuler cart Item details
      *
      * @param  $id
-     * @return $productRating
+     * @return $cartIteam
      */
     public function get($id)
     {
@@ -90,6 +92,7 @@ class CartItemController extends Controller
 
         return ok('cart iteam get successfully', $cartIteam);
     }
+
     /**
      * API of Update cart iteam
      *
@@ -101,10 +104,10 @@ class CartItemController extends Controller
         $this->validate($request, [
             'user_id'     => 'required|exists:users,id',
             'product_id'  => 'required|exists:Products,id',
-            'amount'      => 'required|numeric',
-            'discount'    => 'required|numeric',
-            'tax'         => 'required|numeric',
-            'quantity'    => 'required|numeric',
+            // 'amount'      => 'required|numeric',
+            // 'discount'    => 'required|numeric',
+            // 'tax'         => 'required|numeric',
+            'quantity'    => 'required|numeric|max:10',
         ]);
 
         $cartIteam = CartItem::findOrFail($id);
@@ -112,6 +115,7 @@ class CartItemController extends Controller
 
         return ok('cart iteam  updated successfully!', $cartIteam);
     }
+
     /**
      * API of Delete cart iteam
      *

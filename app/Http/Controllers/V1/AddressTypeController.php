@@ -46,8 +46,8 @@ class AddressTypeController extends Controller
         $addressType = $query->get();
 
         $data = [
-            'count' => $count,
-            'data'  => $addressType
+            'count'          => $count,
+            'address Types'  => $addressType
         ];
 
         return ok('Address Type  list', $data);

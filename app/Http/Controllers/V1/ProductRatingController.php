@@ -47,7 +47,7 @@ class ProductRatingController extends Controller
 
         $data = [
             'count' => $count,
-            'data'  => $productRating
+            'product Ratings'  => $productRating
         ];
 
         return ok(' Product Rating  list', $data);
@@ -57,7 +57,7 @@ class ProductRatingController extends Controller
         $this->validate($request, [
             'product_id'    => 'required|exists:products,id',
             'user_id'       => 'required|exists:users,id',
-            'rating'        => 'required|min:1,max:5'
+            'rating'        => 'required|integer|max:5'
         ]);
         $productRating = ProductRating::create($request->only('product_id', 'user_id', 'rating'));
 
@@ -86,7 +86,7 @@ class ProductRatingController extends Controller
         $this->validate($request, [
             'product_id'    => 'required|exists:products,id',
             'user_id'       => 'required|exists:users,id',
-            'rating'        => 'required|min:1,max:5'
+            'rating'        => 'required|integer|max:5'
         ]);
 
         $productRating = ProductRating::findOrFail($id);

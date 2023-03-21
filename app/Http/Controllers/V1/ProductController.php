@@ -15,7 +15,7 @@ class ProductController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $product
      */
-    public function list(Request $request)
+    public function list(Request $request, $sub_category_id)
     {
         $this->validate($request, [
             'page'          => 'nullable|integer',
@@ -44,17 +44,19 @@ class ProductController extends Controller
         }
 
         /* Get records */
-        $product = $query->get();
+        // $product = $query->get();
+        $product = Product::where('sub_category_id', $sub_category_id)->with('subProd')->get();
+
 
         $data = [
             'count' => $count,
-            'data'  => $product
+            'products'  => $product
         ];
 
         return ok(' Product  list', $data);
     }
     /**
-     * API of Create sub-category
+     * API of Create product
      *
      *@param  \Illuminate\Http\Request  $request
      *@return $product
@@ -64,14 +66,14 @@ class ProductController extends Controller
         $this->validate($request, [
             'category_id'      => 'required|exists:categories,id',
             'sub_category_id'  => 'required|exists:sub_categories,id',
-            'name'             => 'required|unique:sub_categories,name',
-            'image.*'          => 'required',
+            'name'             => 'required|unique:products,name',
+            'image.*'          => 'required|mimes:jpeg,jpg,png,gif|max:10000',
             'price'            => 'required|integer',
             'discount'         => 'required|numeric|between:0,99.99',
             'is_emi_available' => 'required|boolean',
             'is_available'     => 'required|boolean',
             'manufactured_at'  => 'required|date',
-            'expires_at'       => 'required|date',
+            'expires_at'       => 'required|after:manufactured_at',
             'tax'              => 'required|numeric|between:0,99.99'
         ]);
         // dd($request->all());
@@ -109,7 +111,7 @@ class ProductController extends Controller
     {
         $product = Product::with('img')->findOrFail($id);
 
-        return ok('Category get successfully', $product);
+        return ok('product get successfully', $product);
     }
     /**
      * API of Update product
@@ -122,14 +124,14 @@ class ProductController extends Controller
         $this->validate($request, [
             'category_id'      => 'required|exists:categories,id',
             'sub_category_id'  => 'required|exists:sub_categories,id',
-            'name'             => 'required|unique:sub_categories,name',
-            'image.*'          => 'required',
+            'name'             => 'required|unique:products,name',
+            'image.*'          => 'required|mimes:jpeg,jpg,png,gif|max:10000',
             'price'            => 'required|integer',
             'discount'         => 'required|numeric|between:0,99.99',
             'is_emi_available' => 'required|boolean',
             'is_available'     => 'required|boolean',
             'manufactured_at'  => 'required|date',
-            'expires_at'       => 'required|date',
+            'expires_at'       => 'required|after:manufactured_at',
             'tax'              => 'required|numeric|between:0,99.99'
         ]);
 
@@ -178,6 +180,6 @@ class ProductController extends Controller
         $product->img()->delete();
         $product->delete();
 
-        return ok('Product iteam deleted successfully');
+        return ok('Product  deleted successfully');
     }
 }

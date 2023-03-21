@@ -48,7 +48,7 @@ class OrderItemsController extends Controller
 
         $data = [
             'count' => $count,
-            'data'  => $orderItem
+            'order Items'  => $orderItem
         ];
 
         return ok(' Order iteam  list', $data);
@@ -64,18 +64,18 @@ class OrderItemsController extends Controller
         $this->validate($request, [
             'order_id'     => 'required|exists:orders,id',
             'product_id'  => 'required|exists:Products,id',
-            'amount'      => 'required|numeric',
-            'discount'    => 'required|numeric|between:0,99.99',
-            'tax'         => 'required|numeric|between:0,99.99',
+            // 'amount'      => 'required|numeric',
+            // 'discount'    => 'required|numeric|between:0,99.99',
+            // 'tax'         => 'required|numeric|between:0,99.99',
             'quantity'    => 'required|numeric',
             'is_gift'     => 'nullable|boolean'
         ]);
         $product = Product::findOrFail($request->product_id);
-        $total = (($product->price + $request->tax) - $request->discount) * $request->quantity;
+        $total = (($product->price + $product->tax) - $product->discount) * $request->quantity;
 
-        $orderIteam = OrderItems::create($request->only('order_id', 'product_id', 'discount', 'tax', 'quantity', 'is_gift') + ['amount' => $total]);
+        $orderIteam = OrderItems::create($request->only('order_id', 'product_id',  'quantity', 'is_gift') + ['amount' => $total]);
 
-        return ok('order iteam created successfully!', $orderIteam);
+        return ok('order iteam created successfully!', $orderIteam->load('prodOrder'));
     }
     /**
      * API of get perticuler order item details
@@ -107,13 +107,13 @@ class OrderItemsController extends Controller
             'is_gift'     => 'nullable|boolean'
         ]);
 
-        $cartIteam = OrderItems::findOrFail($id);
+        $orderIteam = OrderItems::findOrFail($id);
         $product = Product::findOrFail($request->product_id);
         $total = (($product->price + $request->tax) - $request->discount) * $request->quantity;
 
-        $cartIteam->update($request->only('order_id', 'product_id', 'discount', 'tax', 'quantity', 'is_gift') + ['amount' => $total]);
+        $orderIteam->update($request->only('order_id', 'product_id', 'discount', 'tax', 'quantity', 'is_gift') + ['amount' => $total]);
 
-        return ok('Order iteam  updated successfully!', $cartIteam);
+        return ok('Order iteam  updated successfully!', $orderIteam);
     }
     /**
      * API of Delete Order iteam

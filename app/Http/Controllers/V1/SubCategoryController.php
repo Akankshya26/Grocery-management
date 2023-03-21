@@ -14,7 +14,7 @@ class SubCategoryController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $subCategory
      */
-    public function list(Request $request)
+    public function list(Request $request, $category_id)
     {
         $this->validate($request, [
             'page'          => 'nullable|integer',
@@ -43,14 +43,16 @@ class SubCategoryController extends Controller
         }
 
         /* Get records */
-        $subCategory = $query->get();
+        // $subCategory = $query->get();
+        $subCategory = SubCategory::where('category_id', $category_id)->with('categories')->get();
+
 
         $data = [
             'count' => $count,
-            'data'  => $subCategory
+            'sub Categories'  => $subCategory
         ];
 
-        return ok('category  list', $data);
+        return ok('sub category  list', $data);
     }
     /**
      * API of Create sub-category
@@ -67,7 +69,7 @@ class SubCategoryController extends Controller
         // dd($request->only('category_id', 'name'));
         $subCategory = SubCategory::create($request->only('category_id', 'name'));
 
-        return ok('Category created successfully!', $subCategory);
+        return ok('Sub Category created successfully!', $subCategory);
     }
     /**
      * API of get perticuler sub Category details
@@ -79,7 +81,7 @@ class SubCategoryController extends Controller
     {
         $subCategory = SubCategory::findOrFail($id);
 
-        return ok('Category get successfully', $subCategory);
+        return ok('sub category get successfully', $subCategory);
     }
     /**
      * API of Update sub category
@@ -94,10 +96,10 @@ class SubCategoryController extends Controller
             'name'           => 'required|unique:sub_categories,name'
         ]);
 
-        $category = SubCategory::findOrFail($id);
-        $category->update($request->only('category_id', 'name'));
+        $subCategory = SubCategory::findOrFail($id);
+        $subCategory->update($request->only('category_id', 'name'));
 
-        return ok('Sub category updated successfully!', $category);
+        return ok('Sub category updated successfully!', $subCategory);
     }
     /**
      * API of Delete Sub Category

@@ -48,7 +48,7 @@ class OrderController extends Controller
 
         $data = [
             'count' => $count,
-            'data'  => $order
+            'orders'  => $order
         ];
 
         return ok(' order  list', $data);
@@ -69,8 +69,8 @@ class OrderController extends Controller
             'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
             'is_cod'                 => 'nullable|boolean',
             'is_placed'              => 'nullable|boolean',
-            'expected_delivery_date' => 'required|date',
-            'delivery_date'          => 'required|date'
+            'expected_delivery_date' => 'required|date_format:m/d/Y',
+            'delivery_date'          => 'required|date_format:m/d/Y'
 
         ]);
         $cart_items = CartItem::findOrFail($request->cart_item_id);
@@ -112,15 +112,15 @@ class OrderController extends Controller
             'user_address_id'        => 'required|exists:user_addresses,id',
             'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
             'is_cod'                 => 'nullable|boolean',
-            'expected_delivery_date' => 'required|date',
-            'delivery_date'          => 'required|date'
+            'expected_delivery_date' => 'required|date_format:m/d/Y',
+            'delivery_date'          => 'required|date_format:m/d/Y'
 
         ]);
 
-        $category = Order::findOrFail($id);
-        $category->update($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'expected_delivery_date', 'delivery_date'));
+        $order = Order::findOrFail($id);
+        $order->update($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'expected_delivery_date', 'delivery_date'));
 
-        return ok('order updated successfully!', $category);
+        return ok('order updated successfully!', $order);
     }
     /**
      * API of Delete Order

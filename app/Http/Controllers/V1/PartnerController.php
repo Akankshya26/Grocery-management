@@ -48,13 +48,13 @@ class PartnerController extends Controller
 
         $data = [
             'count' => $count,
-            'data'  => $partner
+            'partners'  => $partner
         ];
 
         return ok('Partner  list', $data);
     }
     /**
-     * API of User registration
+     * API of create partner
      *
      *  @param  \Illuminate\Http\Request  $request
      * @return $token
@@ -63,10 +63,10 @@ class PartnerController extends Controller
     {
         //validation
         $request->validate([
-            'first_name'        => 'required|string|max:36',
-            'last_name'         => 'required|string|max:36',
+            'first_name'        => 'required|alpha|max:36',
+            'last_name'         => 'required|alpha|max:36',
             'email'             => 'required|email|unique:users,email|max:255',
-            'password'          => 'required|max:255',
+            'password'          => 'required|max:8',
             'type'              => 'in:partner', //default customer
             'organization_name' => 'required_if:type,partner',
             'rating'            => 'required_if:type,partner',
@@ -79,7 +79,7 @@ class PartnerController extends Controller
             'user'  => $user
         ];
 
-        return ok("User registered successfully!", $data);
+        return ok("partner Created successfully!", $data);
     }
     /**
      * API of Update partenr
@@ -90,19 +90,16 @@ class PartnerController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'first_name'        => 'required|string|max:36',
-            'last_name'         => 'required|string|max:36',
-            'email'             => 'required|email|unique:users,email|max:255',
-            'password'          => 'required|max:255',
+            'first_name'        => 'nullable|alpha|max:36',
+            'last_name'         => 'nullable|alpha|max:36',
+            'email'             => 'nullable|email|unique:users,email|max:255',
             'type'              => 'in:partner',
             'organization_name' => 'required_if:type,partner',
             'rating'            => 'required_if:type,partner',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating') + [
-            'password' => Hash::make($request->password)
-        ]);
+        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating'));
 
         return ok('Partner updated successfully!', $user);
     }

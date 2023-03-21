@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     use HasFactory, Uuids;
+
+    /* Fillable */
     protected $fillable = [
         'category_id',
         'sub_category_id',
@@ -36,8 +38,8 @@ class Product extends Model
     {
         return $this->belongsTo(Wishlist::class);
     }
-    public function CArts()
+    public function subProd()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(SubCategory::class, 'sub_category_id');
     }
 }
