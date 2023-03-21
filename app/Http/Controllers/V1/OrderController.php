@@ -66,11 +66,11 @@ class OrderController extends Controller
             'product_id'             => 'required|exists:products,id',
             'cart_item_id'           => 'required|exists:cart_items,id',
             'user_address_id'        => 'required|exists:user_addresses,id',
-            'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
+            // 'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
             'is_cod'                 => 'nullable|boolean',
             'is_placed'              => 'nullable|boolean',
-            'expected_delivery_date' => 'required|date_format:m/d/Y',
-            'delivery_date'          => 'required|date_format:m/d/Y'
+            'expected_delivery_date' => 'required|date',
+            'delivery_date'          => 'required|date'
 
         ]);
         $cart_items = CartItem::findOrFail($request->cart_item_id);
@@ -81,7 +81,7 @@ class OrderController extends Controller
             }
         }
 
-        $order = Order::create($request->only('user_id', 'product_id', 'cart_item_id', 'user_address_id', 'status', 'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
+        $order = Order::create($request->only('user_id', 'product_id', 'cart_item_id', 'user_address_id',  'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
 
         return ok('order created successfully!', $order);
     }
@@ -133,5 +133,23 @@ class OrderController extends Controller
         Order::findOrFail($id)->delete();
 
         return ok('Order deleted successfully');
+    }
+
+    /**
+     * API of Update order status
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  $id
+     */
+    public function statusUpdate(Request $request, $id)
+    {
+        $this->validate($request, [
+            'status'                 => 'required|in:Dispached,in_transit,Delivered',
+        ]);
+
+        $order = Order::findOrFail($id);
+        $order->update($request->only('status'));
+
+        return ok('status updated successfully!', $order);
     }
 }
