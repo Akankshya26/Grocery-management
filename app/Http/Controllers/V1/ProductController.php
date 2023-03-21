@@ -15,7 +15,7 @@ class ProductController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $product
      */
-    public function list(Request $request, $sub_category_id)
+    public function list(Request $request)
     {
         $this->validate($request, [
             'page'          => 'nullable|integer',
@@ -25,7 +25,7 @@ class ProductController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = Product::query();
+        $query = Product::query()->with('subProd');
 
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
@@ -44,8 +44,9 @@ class ProductController extends Controller
         }
 
         /* Get records */
-        // $product = $query->get();
-        $product = Product::where('sub_category_id', $sub_category_id)->with('subProd')->get();
+        $product = $query->get();
+        // dd($product);
+        // $product = Product::where('sub_category_id', $sub_category_id)->with('subProd')->get();
 
 
         $data = [

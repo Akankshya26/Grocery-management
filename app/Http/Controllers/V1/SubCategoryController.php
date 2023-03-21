@@ -14,7 +14,7 @@ class SubCategoryController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $subCategory
      */
-    public function list(Request $request, $category_id)
+    public function list(Request $request)
     {
         $this->validate($request, [
             'page'          => 'nullable|integer',
@@ -24,7 +24,8 @@ class SubCategoryController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = SubCategory::query();
+        $query = SubCategory::query()->with('categories');
+
 
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
@@ -43,8 +44,9 @@ class SubCategoryController extends Controller
         }
 
         /* Get records */
-        // $subCategory = $query->get();
-        $subCategory = SubCategory::where('category_id', $category_id)->with('categories')->get();
+        $subCategory = $query->get();
+        // dd($subCategory);
+        // $subCategory = $query->where('category_id', $category_id)->with('categories')->get();
 
 
         $data = [

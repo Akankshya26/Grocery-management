@@ -14,7 +14,7 @@ class CategoryController extends Controller
      *
      *@param  \Illuminate\Http\Request  $request
      *@return $category
-     */ss
+     */
     public function list(Request $request)
     {
         $this->validate($request, [
@@ -25,7 +25,7 @@ class CategoryController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = Category::query();
+        $query = Category::query()->with('subCategory');
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
         }
