@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\SubCategory;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -15,7 +17,7 @@ class ProductController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $product
      */
-    public function list(Request $request)
+    public function list(Request $request, $id)
     {
         $this->validate($request, [
             'page'          => 'nullable|integer',
@@ -25,7 +27,13 @@ class ProductController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = Product::query()->with('subProd');
+
+        if (SubCategory::where('id', $id)->exists()) {
+            $subCategory = SubCategory::where('id', $id)->first();
+            $query = Product::query()->where('sub_category_id', $subCategory->id)->where('status', '0');
+        } else {
+            return error('product no found');
+        }
 
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
@@ -71,10 +79,11 @@ class ProductController extends Controller
             'image.*'          => 'required|mimes:jpeg,jpg,png,gif|max:10000',
             'price'            => 'required|integer',
             'discount'         => 'required|numeric|between:0,99.99',
+            'quantity'          => 'required|integer',
             'is_emi_available' => 'required|boolean',
             'is_available'     => 'required|boolean',
             'manufactured_at'  => 'required|date',
-            'expires_at'       => 'required|after:manufactured_at',
+            'expires_at'       => 'nullable',
             'tax'              => 'required|numeric|between:0,99.99'
         ]);
         // dd($request->all());
@@ -84,6 +93,7 @@ class ProductController extends Controller
             'sub_category_id',
             'name',
             'discount',
+            'quantity',
             'is_emi_available',
             'is_available',
             'manufactured_at',
@@ -104,6 +114,7 @@ class ProductController extends Controller
                 ];
             }
         }
+
         $product->img()->createMany($image);
         // dd($product->img()->createMany($image));
         return ok('Product created successfully!',  $product->load('img'));
@@ -129,6 +140,7 @@ class ProductController extends Controller
             'image.*'          => 'required|mimes:jpeg,jpg,png,gif|max:10000',
             'price'            => 'required|integer',
             'discount'         => 'required|numeric|between:0,99.99',
+            'quantity'          => 'required|integer',
             'is_emi_available' => 'required|boolean',
             'is_available'     => 'required|boolean',
             'manufactured_at'  => 'required|date',
@@ -143,6 +155,7 @@ class ProductController extends Controller
             'sub_category_id',
             'name',
             'discount',
+            'quantity',
             'is_emi_available',
             'is_available',
             'manufactured_at',

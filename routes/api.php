@@ -32,8 +32,8 @@ Route::prefix('v1')->group(function () {
     Route::post('login', [UserController::class, 'login']);
     //open api for customer(listing)
     Route::post('Category_list', [CategoryController::class, 'list']);
-    Route::post('subCategoy_list', [SubCategoryController::class, 'list']);
-    Route::post('product_list', [ProductController::class, 'list']);
+    Route::post('subCategoy_list/{id}', [SubCategoryController::class, 'list']);
+    Route::post('product_list/{id}', [ProductController::class, 'list']);
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', [UserController::class, 'logout']);
@@ -93,14 +93,14 @@ Route::prefix('v1')->group(function () {
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            Route::post('delete', 'delete');
         });
         Route::controller(CartItemController::class)->prefix('cart')->group(function () {
             Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
             Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            Route::post('delete', 'delete');
         });
         Route::controller(OrderController::class)->prefix('order')->group(function () {
             Route::post('list',  'list');

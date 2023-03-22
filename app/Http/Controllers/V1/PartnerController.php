@@ -67,14 +67,13 @@ class PartnerController extends Controller
             'last_name'         => 'required|alpha|max:36',
             'email'             => 'required|email|unique:users,email|max:255',
             'password'          => 'required|max:8',
-            'type'              => 'in:partner', //default customer
             'organization_name' => 'required_if:type,partner',
             'rating'            => 'required_if:type,partner',
         ]);
 
         $user = User::create($request->only('first_name', 'last_name', 'type', 'email', 'organization_name', 'rating') + [
             'password' => Hash::make($request->password)
-        ]);
+        ] + ['type' => 'partner']);
         $data = [
             'user'  => $user
         ];
@@ -93,13 +92,12 @@ class PartnerController extends Controller
             'first_name'        => 'nullable|alpha|max:36',
             'last_name'         => 'nullable|alpha|max:36',
             'email'             => 'nullable|email|unique:users,email|max:255',
-            'type'              => 'in:partner',
             'organization_name' => 'required_if:type,partner',
             'rating'            => 'required_if:type,partner',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating'));
+        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating') + ['type' => 'partner']);
 
         return ok('Partner updated successfully!', $user);
     }

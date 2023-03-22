@@ -11,7 +11,9 @@ class Category extends Model
 
     /* Fillable */
     protected $fillable = [
-        'name'
+        'name',
+        'slug',
+        'status'
     ];
 
     /* Relations */

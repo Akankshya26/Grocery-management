@@ -8,18 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-
     /* Fillable */
+    public $timestamps = false;
     protected $fillable = [
-        'user_id',
-        'product_id',
-        'user_address_id',
-        'cart_item_id',
-        'status',
-        'is_cod',
-        'is_placed',
-        'expected_delivery_date',
-        'delivery_date'
+        'fname',
+        'lname',
+        'email',
+        'address1',
+        'address2',
+        'phone',
+        'city',
+        'state',
+        'country',
+        'pincode',
+
     ];
 
     /* Relations */
