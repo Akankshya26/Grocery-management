@@ -30,7 +30,7 @@ class ProductController extends Controller
 
         if (SubCategory::where('id', $id)->exists()) {
             $subCategory = SubCategory::where('id', $id)->first();
-            $query = Product::query()->where('sub_category_id', $subCategory->id)->where('status', '0');
+            $query = Product::query()->where('sub_category_id', $subCategory->id);
         } else {
             return error('product no found');
         }

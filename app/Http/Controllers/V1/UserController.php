@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Session;
 
 class UserController extends Controller
 {
+
+    public function view()
+    {
+        $user = User::where('id', Auth::id())->get();
+        return ok('User Profile get succesfully', $user);
+    }
     /**
      * API of User registration
      *
@@ -25,9 +31,7 @@ class UserController extends Controller
             'last_name'         => 'required|alpha|max:36',
             'email'             => 'required|email|unique:users,email|max:255',
             'password'          => 'required|max:8',
-            'type'              => 'in:customer', //default customer
-            // 'organization_name' => 'required_if:type,partner',
-            // 'rating'            => 'required_if:type,partner',
+            'type'              => 'in:customer'
         ]);
         $user = User::create($request->only('first_name', 'last_name', 'type', 'email') + [
             'password' => Hash::make($request->password)
@@ -49,7 +53,7 @@ class UserController extends Controller
     {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required|max:8',
+            'password' => 'required',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -114,5 +118,27 @@ class UserController extends Controller
         User::findOrFail($id)->delete();
 
         return ok('User deleted successfully');
+    }
+    //change password
+    public function updatePassword(Request $request)
+    {
+        # Validation
+        $request->validate([
+            'old_password' => 'required',
+            'new_password' => 'required',
+        ]);
+
+
+        #Match The Old Password
+        if (!Hash::check($request->old_password, auth()->user()->password)) {
+            return back()->with("error", "Old Password Doesn't match!");
+        }
+
+
+        #Update the new Password
+        User::whereId(auth()->user()->id)->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+        return ok('password updated succesfully');
     }
 }

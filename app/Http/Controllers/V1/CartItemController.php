@@ -76,26 +76,26 @@ class CartItemController extends Controller
 
         $product_id = $request->input('product_id');
         $product_qty = $request->input('quantity');
-        if (Auth::check()) {
-            $prod_check = Product::where('id', $product_id)->exists();
-            if ($prod_check) {
-                if (CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
-                    return error(' This product is already in cart');
-                } else {
-                    $cartIteam = new CartItem();
-                    $cartIteam->product_id = $product_id;
-                    $cartIteam->user_id = Auth::id();
-                    $cartIteam->quantity = $product_qty;
-                    $cartIteam->save();
+        // if (Auth::check()) {
+        $prod_check = Product::where('id', $product_id)->exists();
+        if ($prod_check) {
+            if (CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
+                return error(' This product is already in cart');
+            } else {
+                $cartIteam = new CartItem();
+                $cartIteam->product_id = $product_id;
+                $cartIteam->user_id = Auth::id();
+                $cartIteam->quantity = $product_qty;
+                $cartIteam->save();
 
-                    $wishlist = Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->get();
-                    Wishlist::destroy($wishlist);
-                    return ok('Product added to cart successfully', $cartIteam);
-                }
+                $wishlist = Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->get();
+                Wishlist::destroy($wishlist);
+                return ok('Product added to cart successfully', $cartIteam);
             }
-        } else {
-            return error('Continue with Login');
         }
+        // } else {
+        //     return error('Continue with Login');
+        // }
     }
 
     /**

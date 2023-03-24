@@ -64,9 +64,6 @@ class OrderItemsController extends Controller
         $this->validate($request, [
             'order_id'     => 'required|exists:orders,id',
             'product_id'  => 'required|exists:Products,id',
-            // 'amount'      => 'required|numeric',
-            // 'discount'    => 'required|numeric|between:0,99.99',
-            // 'tax'         => 'required|numeric|between:0,99.99',
             'quantity'    => 'required|numeric',
             'is_gift'     => 'nullable|boolean'
         ]);

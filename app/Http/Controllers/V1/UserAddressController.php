@@ -64,7 +64,7 @@ class UserAddressController extends Controller
             'address_type_id' => 'required|exists:address_types,id',
             'address1'        => 'required|string|max:50',
             'address2'        => 'required|string|max:50',
-            'zip_code'        => 'nullable|integer|size:6',
+            'zip_code'        => 'nullable|integer',
             'is_primary'      => 'nullable|boolean'
         ]);
 

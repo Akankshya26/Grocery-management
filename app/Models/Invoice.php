@@ -12,12 +12,13 @@ class Invoice extends Model
     /* Fillable */
     protected $fillable = [
         'user_id',
+        'user_address_id',
         'product_id',
-        'order_item_id',
-        'total_amount',
-        'payment_status', //'pending' ,'done'
-        'is_cod',
-        'expected_delivery_date',
+        'order_id',
+        'order_num',
+        'total_amount', //'pending' ,'done'
+        'invoice_num',
+        'payment_status',
     ];
 
     /* Relations */
@@ -27,7 +28,7 @@ class Invoice extends Model
     }
     public function OrderInvoice()
     {
-        return $this->belongsTo(OrderItems::class, 'order_item_id');
+        return $this->belongsTo(Order::class, 'order_id');
     }
     public function productInvoice()
     {

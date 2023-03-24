@@ -19,12 +19,12 @@ class OrderItems extends Model
     ];
 
     /* Relations */
-    public function orderItems()
+    public function orders()
     {
         return $this->belongsTo(Order::class, 'order_id');
     }
     public function prodOrder()
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

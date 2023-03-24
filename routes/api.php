@@ -38,6 +38,9 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', [UserController::class, 'logout']);
         Route::post('update/{id}', [UserController::class, 'update']);
+        Route::post('change-password', [UserController::class, 'updatePassword']);
+        Route::post('user/view', [UserController::class, 'view']);
+
         Route::controller(CategoryController::class)->prefix('category')->group(function () {
             // Route::post('list',  'list');
             Route::post('create', 'create')->middleware('check:admin|parter');
@@ -74,7 +77,7 @@ Route::prefix('v1')->group(function () {
             Route::post('delete/{id}', 'delete');
         });
         Route::controller(ProductController::class)->prefix('Product')->group(function () {
-            // Route::post('list',  'list')->middleware('check:type,partner|customer');
+            Route::post('list',  'list')->middleware('check:partner|customer|admin');
             Route::post('create', 'create')->middleware('check:partner');
             Route::get('get/{id}',  'get')->middleware('check:partner');
             Route::post('update/{id}', 'update')->middleware('check:partner');
@@ -84,9 +87,6 @@ Route::prefix('v1')->group(function () {
         Route::controller(ProductRatingController::class)->prefix('rating')->group(function () {
             Route::post('list',  'list');
             Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
         });
         Route::controller(WishlistController::class)->prefix('wishlist')->group(function () {
             Route::post('list',  'list');
@@ -106,9 +106,9 @@ Route::prefix('v1')->group(function () {
             Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
             Route::post('update-status/{id}', 'statusUpdate');
-            Route::post('delete/{id}', 'delete');
+            Route::get('Invoice',  'Invoice');
+            Route::get('invoice/download/{id}/generate',  'Invoice');
         });
         Route::controller(OrderItemsController::class)->prefix('orderItem')->group(function () {
             Route::post('list',  'list');

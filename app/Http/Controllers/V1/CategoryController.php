@@ -50,7 +50,7 @@ class CategoryController extends Controller
         ];
         // dd($data);
 
-        return ok('category  list', $data);
+        return ok('Category  list', $data);
     }
 
     /**
@@ -99,7 +99,7 @@ class CategoryController extends Controller
         $category = Category::findOrFail($id);
         $category->update($request->only('name', 'slug'));
 
-        return ok('category updated successfully!', $category);
+        return ok('Category updated successfully!', $category);
     }
 
     /**

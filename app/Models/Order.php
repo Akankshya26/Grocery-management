@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\OrderItems;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
@@ -11,16 +12,13 @@ class Order extends Model
     /* Fillable */
     public $timestamps = false;
     protected $fillable = [
-        'fname',
-        'lname',
-        'email',
-        'address1',
-        'address2',
-        'phone',
-        'city',
-        'state',
-        'country',
-        'pincode',
+        'user_id',
+        'product_id',
+        'user_address_id',
+        'order_num',
+        'status',
+        'expected_delivery_date',
+
 
     ];
 
@@ -35,7 +33,7 @@ class Order extends Model
     }
     public function OrderItm()
     {
-        return $this->hasMany(Order::class, 'order_id');
+        return $this->hasMany(OrderItems::class, 'order_id');
     }
     public function CArts()
     {

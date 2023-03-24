@@ -5,10 +5,16 @@ namespace App\Http\Controllers\V1;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class PartnerController extends Controller
 {
+    public function view()
+    {
+        $user = User::where('id', Auth::id())->get();
+        return ok('User Profile get succesfully', $user);
+    }
     /**
      * API of List partner
      *
@@ -25,10 +31,10 @@ class PartnerController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = User::query();
+        $query = User::query()->where('type', 'partner');
 
         if ($request->search) {
-            $query = $query->where('type', 'like', "%$request->search%");
+            $query = $query->where('name', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {
