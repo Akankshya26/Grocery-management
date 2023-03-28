@@ -29,14 +29,6 @@ class CartItemController extends Controller
 
         $query = CartItem::query()->where('user_id', Auth::id());
 
-        if ($request->search) {
-            $query = $query->where('name', 'like', "%$request->search%");
-        }
-
-        if ($request->sort_field || $request->sort_order) {
-            $query = $query->orderBy($request->sort_field, $request->sort_order);
-        }
-
         /* Pagination */
         $count = $query->count();
         if ($request->page && $request->perPage) {

@@ -28,14 +28,6 @@ class WishlistController extends Controller
 
         $query = Wishlist::query()->where('user_id', Auth::id());
 
-        if ($request->search) {
-            $query = $query->where('name', 'like', "%$request->search%");
-        }
-
-        if ($request->sort_field || $request->sort_order) {
-            $query = $query->orderBy($request->sort_field, $request->sort_order);
-        }
-
         /* Pagination */
         $count = $query->count();
         if ($request->page && $request->perPage) {
@@ -67,18 +59,15 @@ class WishlistController extends Controller
             'product_id' => 'required|exists:products,id'
         ]);
         $product_id = $request->input('product_id');
-        if (Auth::check()) {
-            $prod_check = Product::where('id', $product_id)->exists();
-            if ($prod_check) {
-                if (Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
-                    return error(' This product is already in wishlist');
-                } else {
-                    $wish = Wishlist::create($request->only('product_id') + ['user_id' => Auth::id()]);
-                    return ok('Product added to wishlist successfully', $wish);
-                }
+
+        $prod_check = Product::where('id', $product_id)->exists();
+        if ($prod_check) {
+            if (Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
+                return error(' This product is already in wishlist');
+            } else {
+                $wish = Wishlist::create($request->only('product_id') + ['user_id' => Auth::id()]);
+                return ok('Product added to wishlist successfully', $wish);
             }
-        } else {
-            return error('Continue with Login');
         }
     }
     /**
@@ -109,17 +98,14 @@ class WishlistController extends Controller
     public function delete(Request $request)
     {
 
-        if (Auth::check()) {
-            $product_id = $request->input('product_id'); {
-                if (Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
 
-                    $wish = Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->first();
-                    $wish->delete();
-                    return ok('Product removed from wishlist successfully');
-                }
+        $product_id = $request->input('product_id'); {
+            if (Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
+
+                $wish = Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->first();
+                $wish->delete();
+                return ok('Product removed from wishlist successfully');
             }
-        } else {
-            return error('Continue with Login');
         }
     }
 }
