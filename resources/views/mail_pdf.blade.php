@@ -109,13 +109,14 @@
         <thead>
             <tr>
                 <th width="50%" colspan="2">
-                    <h2 class="text-start">Funda Ecommerce</h2>
+                    <h2 class="text-start">Grocery Management</h2>
                 </th>
                 <th width="50%" colspan="2" class="text-end company-data">
-                    <span>Invoice Id:{{ $order->invoice_num }}</span> <br>
-                    <span>Date: 24 / 09 / 2022</span> <br>
-                    <span>Zip code : 560077</span> <br>
-                    <span>Address: #555, Main road, shivaji nagar, Bangalore, India</span> <br>
+                    <span>Invoice Id:{{ $order->orderInvoice->invoice_num }}</span> <br>
+                    <span>{{ now()->format('Y-m-d') }}</span> <br>
+                    {{-- {{ dd($order->userOrder) }} --}}
+                    <span>Zip code :{{ $order->userOrder->UserAddress->first()->zip_code }}</span> <br>
+                    <span>Address:{{ $order->userOrder->UserAddress->first()->address1 }}</span> <br>
                 </th>
             </tr>
             <tr class="bg-blue">
@@ -126,38 +127,39 @@
         <tbody>
             <tr>
                 <td>Order Id:</td>
-                <td>6</td>
+                <td>{{ $order->id }}</td>
 
                 <td>Full Name:</td>
-                <td>Ved Prakash</td>
+                <td> {{ $order->userOrder->getFullNameAttribute() }}</td>
             </tr>
             <tr>
                 <td>Tracking Id/No.:</td>
-                <td>funda-CRheOqspbA</td>
+                <td>{{ $order->order_num }} </td>
 
                 <td>Email Id:</td>
-                <td>ved@gmail.com</td>
+                <td>{{ $order->userOrder->email }}</td>
             </tr>
             <tr>
                 <td>Ordered Date:</td>
-                <td>22-09-2022 10:54 AM</td>
+                <td>{{ $order->created_at }}</td>
 
                 <td>Phone:</td>
-                <td>8889997775</td>
+                <td>{{ $order->userOrder->phone }}</td>
             </tr>
             <tr>
-                <td>Payment Mode:</td>
-                <td>Cash on Delivery</td>
+                <td>Payment status:</td>
+                <td>{{ $order->orderInvoice->payment_status }}</td>
 
                 <td>Address:</td>
-                <td>asda asdad asdad adsasd</td>
+                <td>{{ $order->userOrder->UserAddress->first()->address1 }},
+                    {{ $order->userOrder->UserAddress->first()->address2 }}</td>
             </tr>
             <tr>
                 <td>Order Status:</td>
-                <td>completed</td>
+                <td>{{ $order->status }}</td>
 
                 <td>Pin code:</td>
-                <td>566999</td>
+                <td>{{ $order->userOrder->UserAddress->first()->zip_code }}</td>
             </tr>
         </tbody>
     </table>
@@ -174,31 +176,30 @@
                 <th>Product</th>
                 <th>Price</th>
                 <th>Quantity</th>
+                <th>Discount</th>
                 <th>Total</th>
             </tr>
         </thead>
+
+
         <tbody>
+            @foreach ($item as $product)
+                <tr>
+                    <td width="10%">{{ $product->prodOrder->id }}</td>
+                    <td>
+                        {{ $product->prodOrder->name }}
+                    </td>
+                    <td width="10%">{{ $product->prodOrder->price }}</td>
+                    <td width="10%">{{ $product->quantity }}</td>
+                    <td width="10%">{{ $product->discount }}</td>
+                    <td width="15%" class="fw-bold">{{ $product->prodOrder->price * $product->quantity }}
+                    </td>
+                </tr>
+            @endforeach
             <tr>
-                <td width="10%">16</td>
-                <td>
-                    Mi Note 7
+                <td colspan="5" class="total-heading">Total Amount - <small>Inc. all vat/tax</small> :</td>
+                <td colspan="1" class="total-heading">{{ $order->orderInvoice->total_amount }}
                 </td>
-                <td width="10%">$14000</td>
-                <td width="10%">1</td>
-                <td width="15%" class="fw-bold">$14000</td>
-            </tr>
-            <tr>
-                <td width="10%">17</td>
-                <td>
-                    Vivo V19
-                </td>
-                <td width="10%">$699</td>
-                <td width="10%">1</td>
-                <td width="15%" class="fw-bold">$699</td>
-            </tr>
-            <tr>
-                <td colspan="4" class="total-heading">Total Amount - <small>Inc. all vat/tax</small> :</td>
-                <td colspan="1" class="total-heading">$14699</td>
             </tr>
         </tbody>
     </table>
@@ -206,7 +207,7 @@
 
     <br>
     <p class="text-center">
-        Thank your for shopping with Funda of Web IT
+        Thank your for shopping
     </p>
 
 </body>

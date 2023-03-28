@@ -30,7 +30,7 @@ class CartItemController extends Controller
         $query = CartItem::query()->where('user_id', Auth::id());
 
         if ($request->search) {
-            $query = $query->where('product_id', 'like', "%$request->search%");
+            $query = $query->where('name', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {
@@ -127,13 +127,12 @@ class CartItemController extends Controller
         $product_id = $request->input('product_id');
         $product_qty = $request->input('quantity');
 
-        if (Auth::check()) {
-            if (CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->exists()); {
-                $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->first();
-                $cartIteam->quantity =  $product_qty;
-                $cartIteam->update();
-                return ok('Qunatity Updated successfully', $cartIteam);
-            }
+
+        if (CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->exists()); {
+            $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->first();
+            $cartIteam->quantity =  $product_qty;
+            $cartIteam->update();
+            return ok('Qunatity Updated successfully', $cartIteam);
         }
     }
 
@@ -145,15 +144,12 @@ class CartItemController extends Controller
      */
     public function delete(Request $request)
     {
-        if (Auth::check()) {
-            $product_id = $request->input('product_id');
-            if (CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->exists()); {
-                $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->first();
-                $cartIteam->delete();
-                return ok('product remove from cart succesfull ');
-            }
-        } else {
-            return error('Continue with Login');
+
+        $product_id = $request->input('product_id');
+        if (CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->exists()); {
+            $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->first();
+            $cartIteam->delete();
+            return ok('product remove from cart succesfullly ');
         }
     }
 }

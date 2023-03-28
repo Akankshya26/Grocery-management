@@ -6,12 +6,13 @@
         table {
             font-family: arial, sans-serif;
             border-collapse: collapse;
-            width: 100%;
+            width: 60%;
         }
 
         td,
         th {
-            border: 1px solid #dddddd;
+            border: 1px solid #111212;
+            background-color: #f2f5f6;
             text-align: left;
             padding: 8px;
         }
@@ -43,6 +44,9 @@
         </tr>
 
     </table>
+
+    <a href="{{ route('admin.approve', $orderItems->order_id) }}" class="btn btn-success">Approve</a>
+    <a href="{{ route('admin.decline', $orderItems->order_id) }}" class="btn btn-danger">Decline</a>
 
 </body>
 

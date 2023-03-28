@@ -12,6 +12,7 @@ use App\Models\OrderItems;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Mail\OrderCancel;
 use App\Mail\OrderMail;
 use PDF;
 use Illuminate\Support\Facades\Auth;
@@ -27,16 +28,6 @@ class OrderController extends Controller
      */
     public function list()
     {
-        // $old_cartItem = CartItem::where('user_id', Auth::id());
-        // foreach ($old_cartItem as $item) {
-        //     if (!Product::where('id', $item->product_id)->where('quantity', '>=', $item->quantity)->exists()) {
-        //         $removeItem = CartItem::where('user_id', Auth::id())->where('product_id', $item->product_id)->first();
-        //         $removeItem->delete();
-        //     }
-        // }
-        // $cartItem = CartItem::where('user_id', Auth::id())->get();
-
-
         //order Histoery
         $order = Order::where('user_id', Auth::id())->with('OrderItm')->get();
 
@@ -72,16 +63,11 @@ class OrderController extends Controller
                     'price'      => $item->productCart->price,
 
                 ]);
-
+                /*email send to partnrs*/
                 $partner = $orderItems->prodOrder->created_by;
                 $user = User::findOrFail($partner);
                 Mail::to($user->email)->send(new OrderMail($orderItems));
             }
-        }
-        if (Auth::user()->address1 == NULL) {
-            // dd($request->all());
-            $user = User::where('id', Auth::id())->first();
-            Auth::user()->update($request->only('address1',  'address2', 'city', 'state', 'country', 'pincode'));
         }
 
         $cartItem = CartItem::where('user_id', Auth::id())->get();
@@ -91,22 +77,6 @@ class OrderController extends Controller
         foreach ($cartItem as $item) {
             $total += ($item->productCart->price)  * $item->quantity;
         }
-
-        // dd($orderItems->product_id);
-        $invoice = Invoice::create([
-            'user_id'         => Auth::id(),
-            'order_id'        => $order->id,
-            'user_address_id' => $order->user_address_id,
-            'order_num'       => $order->order_num,
-            'total_amount'    => $total,
-            'invoice_num'     => Str::random(6),
-        ]);
-        $productData = $invoice->OrderInvoice()->first()->OrderItm()->get();
-        // dd($productData->prodOrder);
-
-        $email = $invoice->invoiceUser->email;
-
-        Mail::to($email)->send(new InvoiceMail($invoice, $productData));
 
         $data = [
             'cart items' =>  $cartItem,
@@ -118,8 +88,10 @@ class OrderController extends Controller
     }
     public function Invoice($id)
     {
+
         $order = Order::findOrFail($id);
-        $data = ['order' => $order];
+        $item = $order->OrderItm()->get();
+        $data = ['order' => $order, 'item' => $item];
         $pdf = PDF::loadView('mail_pdf', $data);
         return $pdf->download('invoice' . $order->id . '.pdf');
     }
@@ -137,22 +109,78 @@ class OrderController extends Controller
         return ok('order get successfully', $order);
     }
 
-
-    /**
-     * API of Update order status
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  $id
-     */
-    public function statusUpdate(Request $request, $id)
+    /*Order accept api*/
+    public function approve(Request $request, $id)
     {
-        $this->validate($request, [
-            'status'    => 'required|in:Dispached,in_transit,Delivered',
-        ]);
-
         $order = Order::findOrFail($id);
-        $order->update($request->only('status'));
+        if ($order->status == 'accept') {
+            return ('This order is already placed');
+        } else {
 
-        return ok('status updated successfully!', $order);
+            $order->update(['status' => 'accept']);
+        }
+        $cartItem = $order->OrderItm;
+        $total = 0;
+        foreach ($cartItem as $item) {
+            $total += ($item->price)  * $item->quantity;
+        }
+        if (Invoice::where('order_id', $order->id)->exists()) {
+            return ('duplicate entry');
+        } else {
+            $invoice = Invoice::create([
+                'user_id'         => $order->userOrder->id,
+                'order_id'        => $order->id,
+                'user_address_id' => $order->user_address_id,
+                'order_num'       => $order->order_num,
+                'total_amount'    => $total,
+                'invoice_num'     => Str::random(6),
+            ]);
+            $productData = $invoice->OrderInvoice()->first()->OrderItm()->get();
+
+            $email = $invoice->invoiceUser->email;
+
+            Mail::to($email)->send(new InvoiceMail($invoice, $productData));
+
+            return ok('The Order id accepted', $invoice);
+        }
+    }
+
+    /*Order decline api*/
+    public function decline($id)
+    {
+        $order = Order::findOrFail($id);
+        if ($order->status == 'accept') {
+            return ('This order is already placed');
+        }
+        if ($order->status == 'reject') {
+            return ('This order is already reject');
+        } else {
+            $order->update(['status' => 'reject']);
+            $order->save();
+            $email = $order->userOrder->email;
+            $userName = $order->OrderItm->first()->prodOrder->created_by;
+            $user = User::findorfail($userName);
+            Mail::to($email)->send(new OrderCancel($order, $user));
+            return ok('The Order id rejected');
+        }
+    }
+    /*  Track order status with Order_num*/
+    public function orderStatus($order_num)
+    {
+        $status = Order::where('order_num', $order_num)->first();
+        return ok('The status Of the order is', $status->status);
+    }
+
+    /* Invoice list Of customer*/
+    public function invoiceList()
+    {
+        $query = Invoice::get();
+        return ok('Invoice List get successfully', $query);
+    }
+    /* Cancel order list*/
+    public function cancelOrder()
+    {
+        $cancel = Order::where('status', 'reject')->get();
+        return ok('Canceled order get succesfully', $cancel);
     }
 }

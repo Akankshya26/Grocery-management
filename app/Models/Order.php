@@ -39,4 +39,8 @@ class Order extends Model
     {
         return $this->belongsTo(CartItem::class);
     }
+    public function orderInvoice()
+    {
+        return $this->hasOne(Invoice::class, 'order_id');
+    }
 }

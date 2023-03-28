@@ -29,7 +29,7 @@ class WishlistController extends Controller
         $query = Wishlist::query()->where('user_id', Auth::id());
 
         if ($request->search) {
-            $query = $query->where('user_id', 'like', "%$request->search%");
+            $query = $query->where('name', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {

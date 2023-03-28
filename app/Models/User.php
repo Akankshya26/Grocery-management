@@ -34,7 +34,6 @@ class User extends Authenticatable
         'country',
         'pincode'
     ];
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -70,5 +69,16 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function UserAddress()
+    {
+        return $this->hasMany(UserAddress::class, 'user_id');
+    }
+
+    /*get full name of user*/
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . " " . $this->last_name;
     }
 }

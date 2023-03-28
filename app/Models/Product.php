@@ -32,16 +32,21 @@ class Product extends Model
     {
         return $this->hasMany(ImageProduct::class, 'product_id');
     }
-    // public function prod()
-    // {
-    //     return $this->belongsTo(Category::class);
-    // }
-    // public function prodWishlist()
-    // {
-    //     return $this->belongsTo(Wishlist::class);
-    // }
-    // public function subProd()
-    // {
-    //     return $this->belongsTo(SubCategory::class, 'sub_category_id');
-    // }
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+    public function prodWishlist()
+    {
+        return $this->belongsTo(Wishlist::class);
+    }
+    public function subCategory()
+    {
+        return $this->belongsTo(SubCategory::class, 'sub_category_id');
+    }
+
+    public function productRating()
+    {
+        return $this->hasMany(ProductRating::class, 'product_id')->select('id', 'user_id', 'product_id', 'rating');
+    }
 }

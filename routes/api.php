@@ -33,7 +33,11 @@ Route::prefix('v1')->group(function () {
     //open api for customer(listing)
     Route::post('Category_list', [CategoryController::class, 'list']);
     Route::post('subCategoy_list/{id}', [SubCategoryController::class, 'list']);
-    Route::post('product_list/{id}', [ProductController::class, 'list']);
+    Route::post('product_list', [ProductController::class, 'list']);
+
+    //order accept /decline
+    Route::get('approve/{id}', [OrderController::class, 'approve'])->name('admin.approve');
+    Route::get('decline/{id}', [OrderController::class, 'decline'])->name('admin.decline');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', [UserController::class, 'logout']);
@@ -42,7 +46,7 @@ Route::prefix('v1')->group(function () {
         Route::post('user/view', [UserController::class, 'view']);
 
         Route::controller(CategoryController::class)->prefix('category')->group(function () {
-            // Route::post('list',  'list');
+
             Route::post('create', 'create')->middleware('check:admin|parter');
             Route::get('get/{id}',  'get')->middleware('check:admin|parter');
             Route::post('update/{id}', 'update')->middleware('check:admin|parter');
@@ -56,25 +60,25 @@ Route::prefix('v1')->group(function () {
             Route::post('delete/{id}', 'delete')->middleware('check:admin');
         });
         Route::controller(SubCategoryController::class)->prefix('subCategory')->group(function () {
-            // Route::post('list',  'list');
+
             Route::post('create', 'create')->middleware('check:admin|parter');
             Route::get('get/{id}',  'get')->middleware('check:admin|parter');
             Route::post('update/{id}', 'update')->middleware('check:admin|parter');
             Route::post('delete/{id}', 'delete')->middleware('check:admin|parter');
         });
         Route::controller(AddressTypeController::class)->prefix('AddressType')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            Route::post('list',  'list')->middleware('check:admin|customer');
+            Route::post('create', 'create')->middleware('check:admin|customer');
+            Route::get('get/{id}',  'get')->middleware('check:admin|customer');
+            Route::post('update/{id}', 'update')->middleware('check:admin|customer');
+            Route::post('delete/{id}', 'delete')->middleware('check:admin|customer');
         });
         Route::controller(UserAddressController::class)->prefix('UserAddress')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            Route::post('list',  'list')->middleware('check:admin|customer');
+            Route::post('create', 'create')->middleware('check:admin|customer');
+            Route::get('get/{id}',  'get')->middleware('check:admin|customer');
+            Route::post('update/{id}', 'update')->middleware('check:admin|customer');
+            Route::post('delete/{id}', 'delete')->middleware('check:admin|customer');
         });
         Route::controller(ProductController::class)->prefix('Product')->group(function () {
             Route::post('list',  'list')->middleware('check:partner|customer|admin');
@@ -82,47 +86,36 @@ Route::prefix('v1')->group(function () {
             Route::get('get/{id}',  'get')->middleware('check:partner');
             Route::post('update/{id}', 'update')->middleware('check:partner');
             Route::post('delete/{id}', 'delete')->middleware('check:partner');
+            Route::post('partner/product/list', 'partnerProduct')->middleware('check:partner');
         });
 
         Route::controller(ProductRatingController::class)->prefix('rating')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
+            Route::post('list',  'list')->middleware('check:admin|customer');
+            Route::post('create', 'create')->middleware('check:admin|customer');
         });
         Route::controller(WishlistController::class)->prefix('wishlist')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete', 'delete');
+            Route::post('list',  'list')->middleware('check:admin|customer');
+            Route::post('create', 'create')->middleware('check:admin|customer');
+            Route::post('update/{id}', 'update')->middleware('check:admin|customer');
+            Route::post('delete', 'delete')->middleware('check:admin|customer');
         });
         Route::controller(CartItemController::class)->prefix('cart')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete', 'delete');
+            Route::post('list',  'list')->middleware('check:admin|customer');
+            Route::post('create', 'create')->middleware('check:admin|customer');
+            Route::post('update/{id}', 'update')->middleware('check:admin|customer');
+            Route::post('delete', 'delete')->middleware('check:admin|customer');
         });
         Route::controller(OrderController::class)->prefix('order')->group(function () {
             Route::post('list',  'list');
             Route::post('create', 'create');
             Route::get('get/{id}',  'get');
-            Route::post('update-status/{id}', 'statusUpdate');
-            Route::get('Invoice',  'Invoice');
+            Route::post('order-status/{order_num}', 'orderStatus');
+            Route::get('invoice',  'Invoice');
+            Route::post('cancel/orderList',  'cancelOrder')->middleware('check:admin|admin');
             Route::get('invoice/download/{id}/generate',  'Invoice');
-        });
-        Route::controller(OrderItemsController::class)->prefix('orderItem')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
-        });
-        Route::controller(InvoiceController::class)->prefix('invoice')->group(function () {
-            Route::post('list',  'list');
-            Route::post('create', 'create');
-            Route::get('get/{id}',  'get');
-            Route::post('update/{id}', 'update');
-            Route::post('delete/{id}', 'delete');
+            // Route::get('approve/{id}', 'approve')->name('admin.approve');
+            // Route::get('decline/{id}', 'decline')->name('admin.decline');
+            Route::post('invoice/list',  'invoiceList')->middleware('check:admin');
         });
     });
 });

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\V1;
 
 use App\Models\Product;
 use App\Models\Category;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Models\SubCategory;
+use Illuminate\Http\Request;
+use App\Models\ProductRating;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -17,28 +19,37 @@ class ProductController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $product
      */
-    public function list(Request $request, $id)
+    public function list(Request $request)
     {
         $this->validate($request, [
-            'page'          => 'nullable|integer',
-            'perPage'       => 'nullable|integer',
-            'search'        => 'nullable',
-            'sort_field'    => 'nullable',
-            'sort_order'    => 'nullable|in:asc,desc',
+            'page'                => 'nullable|integer',
+            'perPage'             => 'nullable|integer',
+            'search'              => 'nullable',
+            'sort_field'          => 'nullable',
+            'sort_order'          => 'nullable|in:asc,desc',
+            'category_id'         => 'exists:categories,id',
+            'sub_category_id.*'   => 'exists:sub_categories,id',
+
         ]);
 
+        $query = Product::query()->with('productRating.user');
 
-        if (SubCategory::where('id', $id)->exists()) {
-            $subCategory = SubCategory::where('id', $id)->first();
-            $query = Product::query()->where('sub_category_id', $subCategory->id);
-        } else {
-            return error('product no found');
+        if ($request->category_id) {
+            $query->whereHas('category', function ($query) use ($request) {
+                $query->where('id', $request->category_id);
+            });
+
+            if ($request->sub_category_id && count($request->sub_category_id) > 0) {
+                $query->whereHas('subCategory', function ($query) use ($request) {
+                    $query->whereIn('id', $request->sub_category_id);
+                });
+            }
+            return ok('Product list get successfully');
         }
 
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
         }
-
         if ($request->sort_field || $request->sort_order) {
             $query = $query->orderBy($request->sort_field, $request->sort_order);
         }
@@ -53,13 +64,12 @@ class ProductController extends Controller
 
         /* Get records */
         $product = $query->get();
-        // dd($product);
-        // $product = Product::where('sub_category_id', $sub_category_id)->with('subProd')->get();
+
 
 
         $data = [
             'count'     => $count,
-            'products'  => $product
+            'products'  => $product,
         ];
 
         return ok(' Product  list', $data);
@@ -103,7 +113,6 @@ class ProductController extends Controller
         $image = array();
         if ($request->hasFile('image')) {
 
-            // dd($request->image);
             foreach ($request->image as $file) {
                 $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
                 $upload_path =  'images/' . $product->id;
@@ -116,12 +125,11 @@ class ProductController extends Controller
         }
 
         $product->img()->createMany($image);
-        // dd($product->img()->createMany($image));
         return ok('Product created successfully!',  $product->load('img'));
     }
     public function get($id)
     {
-        $product = Product::with('img')->findOrFail($id);
+        $product = Product::with('img', 'productRating')->findOrFail($id);
 
         return ok('product get successfully', $product);
     }
@@ -166,12 +174,10 @@ class ProductController extends Controller
         $image = array();
         if ($request->hasFile('image')) {
             $upload_path =  'images/' . $product->id;
-            Storage::deleteDirectory($upload_path);
+            Storage::delete('images/' . $product->id);
             $product->img()->delete();
-            // dd($request->image);
             foreach ($request->image as $file) {
                 $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
-                // $upload_path =  'images/' . $product->id;
                 $file->storeAs($upload_path, $image_name);
                 $image[] = [
                     'product_id' => $product->id,
@@ -195,5 +201,12 @@ class ProductController extends Controller
         $product->delete();
 
         return ok('Product  deleted successfully');
+    }
+
+    public function partnerProduct()
+    {
+
+        $query = Product::query()->where('id', Auth::id())->get();
+        return ok('Your added Product list', $query);
     }
 }
