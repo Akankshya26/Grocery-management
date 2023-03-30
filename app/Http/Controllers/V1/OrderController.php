@@ -31,7 +31,7 @@ class OrderController extends Controller
     public function list()
     {
         //order Histoery
-        $order = Order::where('user_id', Auth::id())->with('OrderItm')->get();
+        $order = Order::where('user_id', auth()->user()->id)->with('OrderItm')->get();
 
         return ok('order history', $order);
     }

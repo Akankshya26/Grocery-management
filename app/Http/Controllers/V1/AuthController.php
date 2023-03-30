@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 
-class UserController extends Controller
+class AuthController extends Controller
 {
 
     public function view()

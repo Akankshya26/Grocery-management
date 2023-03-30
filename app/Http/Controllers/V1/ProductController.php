@@ -47,7 +47,6 @@ class ProductController extends Controller
                     $query->whereIn('id', $request->sub_category_id);
                 });
             }
-            // return ok('Product list get successfully');
         }
 
         if ($request->search) {
