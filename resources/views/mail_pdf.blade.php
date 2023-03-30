@@ -180,8 +180,6 @@
                 <th>Total</th>
             </tr>
         </thead>
-
-
         <tbody>
             @foreach ($item as $product)
                 <tr>

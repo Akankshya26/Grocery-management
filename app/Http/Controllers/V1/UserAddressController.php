@@ -16,7 +16,7 @@ class UserAddressController extends Controller
      */
     public function list(Request $request)
     {
-        $query = UserAddress::query()->where('user_id', Auth::id());
+        $query = UserAddress::query()->where('user_id', auth()->user()->id);
 
 
         /* Pagination */
@@ -40,7 +40,7 @@ class UserAddressController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'user_id'         => 'required|exists:users,id',
+
             'address_type_id' => 'required|exists:address_types,id',
             'address1'        => 'required|string|max:50',
             'address2'        => 'required|string|max:50',
@@ -48,7 +48,7 @@ class UserAddressController extends Controller
             'is_primary'      => 'nullable|boolean'
         ]);
 
-        $userAddress = UserAddress::create($request->only('user_id', 'address_type_id', 'address1', 'address2', 'zip_code', 'is_primary'));
+        $userAddress = auth()->user()->UserAddress()->create($request->only('address_type_id', 'address1', 'address2', 'zip_code', 'is_primary'));
 
         return ok('User Address created successfully!', $userAddress);
     }

@@ -12,7 +12,7 @@ class PartnerController extends Controller
 {
     public function view()
     {
-        $user = User::where('id', Auth::id())->get();
+        $user = User::where('id', auth()->user()->id)->get();
         return ok('User Profile get succesfully', $user);
     }
     /**
@@ -99,11 +99,11 @@ class PartnerController extends Controller
             'last_name'         => 'nullable|alpha|max:36',
             'email'             => 'nullable|email|unique:users,email|max:255',
             'organization_name' => 'required_if:type,partner',
-            'rating'            => 'required_if:type,partner',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating') + ['type' => 'partner']);
+        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name')
+            + ['type' => 'partner']);
 
         return ok('Partner updated successfully!', $user);
     }

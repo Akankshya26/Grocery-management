@@ -49,4 +49,8 @@ class Product extends Model
     {
         return $this->hasMany(ProductRating::class, 'product_id')->select('id', 'user_id', 'product_id', 'rating');
     }
+    public function OrderItem()
+    {
+        return $this->hasMany(OrderItems::class, 'product_id');
+    }
 }

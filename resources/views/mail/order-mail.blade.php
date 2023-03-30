@@ -20,12 +20,20 @@
         tr:nth-child(even) {
             background-color: #dddddd;
         }
+
+        .button1 {
+            background-color: #4CAF50;
+        }
+
+        .button2 {
+            background-color: #d8000b;
+        }
     </style>
 </head>
 
 <body>
 
-    <h2>Hello {{ $orderItems->prodOrder->first_name }}</h2>
+    <h2>Hello {{ $user->getFullNameAttribute() }}</h2>
     <h2>This Customer Is wants to buy your added product</h2>
 
     <table>
@@ -44,9 +52,9 @@
         </tr>
 
     </table>
-
-    <a href="{{ route('admin.approve', $orderItems->order_id) }}" class="btn btn-success">Approve</a>
-    <a href="{{ route('admin.decline', $orderItems->order_id) }}" class="btn btn-danger">Decline</a>
+    <br>
+    <a href="{{ route('admin.approve', $orderItems->order_id) }}"><button class="button button1">Approve</button></a>
+    <a href="{{ route('admin.decline', $orderItems->order_id) }}"><button class="button button2">Decline</button></a>
 
 </body>
 

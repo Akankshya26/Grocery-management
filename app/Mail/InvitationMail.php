@@ -9,16 +9,15 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class OrderMail extends Mailable
+class InvitationMail extends Mailable
 {
     use Queueable, SerializesModels;
-    public $orderItems, $user;
+    public $user;
     /**
      * Create a new message instance.
      */
-    public function __construct($orderItems, $user)
+    public function __construct($user)
     {
-        $this->orderItems = $orderItems;
         $this->user = $user;
     }
 
@@ -28,7 +27,7 @@ class OrderMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Order Mail',
+            subject: 'Invitation Mail',
         );
     }
 
@@ -38,7 +37,7 @@ class OrderMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            markdown: 'mail.order-mail',
+            markdown: 'mail.invitation-mail',
         );
     }
 

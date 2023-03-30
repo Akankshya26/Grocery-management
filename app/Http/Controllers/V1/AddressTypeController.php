@@ -68,18 +68,7 @@ class AddressTypeController extends Controller
 
         return ok('Address Type created successfully!', $addressType);
     }
-    /**
-     * API of get perticuler Address Type details
-     *
-     * @param  $id
-     * @return $addressType
-     */
-    public function get($id)
-    {
-        $addressType = AddressType::findOrFail($id);
 
-        return ok('Address Type get successfully', $addressType);
-    }
     /**
      * API of Update Address Type
      *

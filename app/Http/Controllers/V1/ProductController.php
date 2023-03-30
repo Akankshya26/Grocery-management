@@ -8,6 +8,7 @@ use App\Models\SubCategory;
 use Illuminate\Http\Request;
 use App\Models\ProductRating;
 use App\Http\Controllers\Controller;
+use App\Models\ImageProduct;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -31,8 +32,10 @@ class ProductController extends Controller
             'sub_category_id.*'   => 'exists:sub_categories,id',
 
         ]);
-
         $query = Product::query()->with('productRating.user');
+        if ($query->quantity->count() == 0) {
+            return ('Product is out of stock');
+        }
 
         if ($request->category_id) {
             $query->whereHas('category', function ($query) use ($request) {
@@ -44,7 +47,7 @@ class ProductController extends Controller
                     $query->whereIn('id', $request->sub_category_id);
                 });
             }
-            return ok('Product list get successfully');
+            // return ok('Product list get successfully');
         }
 
         if ($request->search) {
@@ -130,8 +133,12 @@ class ProductController extends Controller
     public function get($id)
     {
         $product = Product::with('img', 'productRating')->findOrFail($id);
+        if ($product->quantity->count() == 0) {
+            return ('Product is out of stock');
+        } else {
 
-        return ok('product get successfully', $product);
+            return ok('product get successfully', $product);
+        }
     }
     /**
      * API of Update product
@@ -142,18 +149,18 @@ class ProductController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'category_id'      => 'required|exists:categories,id',
-            'sub_category_id'  => 'required|exists:sub_categories,id',
-            'name'             => 'required|unique:products,name',
-            'image.*'          => 'required|mimes:jpeg,jpg,png,gif|max:10000',
-            'price'            => 'required|integer',
-            'discount'         => 'required|numeric|between:0,99.99',
-            'quantity'          => 'required|integer',
-            'is_emi_available' => 'required|boolean',
-            'is_available'     => 'required|boolean',
-            'manufactured_at'  => 'required|date',
-            'expires_at'       => 'required|after:manufactured_at',
-            'tax'              => 'required|numeric|between:0,99.99'
+            'category_id'      => 'nullable|exists:categories,id',
+            'sub_category_id'  => 'nullable|exists:sub_categories,id',
+            'name'             => 'nullable',
+            'image.*'          => 'nullable|mimes:jpeg,jpg,png,gif|max:10000',
+            'price'            => 'nullable|integer',
+            'discount'         => 'nullable|numeric|between:0,99.99',
+            'quantity'          => 'nullable|integer',
+            'is_emi_available' => 'nullable|boolean',
+            'is_available'     => 'nullable|boolean',
+            'manufactured_at'  => 'nullable|date',
+            'expires_at'       => 'nullable|after:manufactured_at',
+            'tax'              => 'nullable|numeric|between:0,99.99'
         ]);
 
         $total = ($request->price + $request->tax) - $request->discount;
@@ -174,8 +181,8 @@ class ProductController extends Controller
         $image = array();
         if ($request->hasFile('image')) {
             $upload_path =  'images/' . $product->id;
-            Storage::delete('images/' . $product->id);
-            $product->img()->delete();
+            // Storage::delete('images/' . $product->id);
+            // $product->img()->delete();
             foreach ($request->image as $file) {
                 $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
                 $file->storeAs($upload_path, $image_name);
@@ -189,7 +196,7 @@ class ProductController extends Controller
         return ok('product updated successfully!', $product->load('img'));
     }
     /**
-     * API of Delete product
+     * API of Delete product with respective image
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id
@@ -203,10 +210,10 @@ class ProductController extends Controller
         return ok('Product  deleted successfully');
     }
 
+
     public function partnerProduct()
     {
-
-        $query = Product::query()->where('id', Auth::id())->get();
+        $query = Product::query()->where('id', auth()->user()->id)->get();
         return ok('Your added Product list', $query);
     }
 }

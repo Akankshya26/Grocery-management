@@ -2,19 +2,21 @@
 
 namespace App\Http\Controllers\V1;
 
+use PDF;
 use App\Models\User;
 use App\Models\Order;
+use App\Mail\OrderMail;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\CartItem;
 use App\Mail\InvoiceMail;
+use App\Mail\OrderCancel;
 use App\Models\OrderItems;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use App\Http\Controllers\Controller;
-use App\Mail\OrderCancel;
-use App\Mail\OrderMail;
-use PDF;
+use App\Models\UserAddress;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -33,6 +35,14 @@ class OrderController extends Controller
 
         return ok('order history', $order);
     }
+
+    public function partnerOrder()
+    {
+        $product = Product::where('created_by', Auth::id());
+
+        $order = Order::where('user_id', $product->created_by)->first();
+        dd($product);
+    }
     /**
      * API of Create order
      *
@@ -42,34 +52,41 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'user_address_id'         => 'required',
-            'status'                  => 'nullable|in:pending, accept, reject, out of delivery, delivered',
-            'expected_delivery_date'  => 'required',
+            'user_address_id'        => 'required|exist:user_address,id',
+            // 'order_num'              => 'exists:orders,order_num',
         ]);
 
+        $user = auth()->user();
+        $userAddress = UserAddress::findorfail($request->user_address_id);
+        if ($userAddress->user_id != $user->id) {
+            return error('This User Address is not belongs to the authenticated user');
+        }
         $cartItem = CartItem::where('user_id', Auth::id());
-
-        // dd($cartItem->user_id);
+        $delivery_date = Carbon::now()->addDays(5);
         if ($cartItem->count() == 0) {
             return error('Your cart is empty');
         } else {
-            $order = Order::create($request->only('user_address_id', 'status', 'expected_delivery_date') + ['order_num' => Str::random(6)] + ['user_id' => Auth::id()]);
+            $order = Order::create($request->only('user_address_id', 'status') +
+                ['order_num' => Str::random(6)] + ['user_id' => Auth::id()] +
+                ['expected_delivery_date' => $delivery_date]);
             $cartItem = CartItem::where('user_id', Auth::id())->get();
+            // $orderItems = [];
+            // $orderItems = $order->OrderItm()->createmany($orderItems);
             foreach ($cartItem as $item) {
                 $orderItems = OrderItems::create([
                     'order_id'   => $order->id,
                     'product_id' => $item->product_id,
                     'quantity'   => $item->quantity,
                     'price'      => $item->productCart->price,
-
                 ]);
+
                 /*email send to partnrs*/
                 $partner = $orderItems->prodOrder->created_by;
                 $user = User::findOrFail($partner);
-                Mail::to($user->email)->send(new OrderMail($orderItems));
+                Mail::to($user->email)->send(new OrderMail($orderItems, $user));
             }
         }
-
+        /*Remove from cart after order placed*/
         $cartItem = CartItem::where('user_id', Auth::id())->get();
         CartItem::destroy($cartItem);
 
@@ -86,35 +103,26 @@ class OrderController extends Controller
         ];
         return ok('order placed successfully', $data);
     }
-    public function Invoice($id)
+
+    /*Generate Invoice */
+    public function downloadInvoice($id)
     {
 
         $order = Order::findOrFail($id);
         $item = $order->OrderItm()->get();
         $data = ['order' => $order, 'item' => $item];
         $pdf = PDF::loadView('mail_pdf', $data);
-        return $pdf->download('invoice' . $order->id . '.pdf');
-    }
-
-    /**
-     * API of get perticuler order details
-     *
-     * @param  $id
-     * @return $order
-     */
-    public function get($id)
-    {
-        $order = Order::with('userOrder', 'productOrder')->findOrFail($id);
-
-        return ok('order get successfully', $order);
+        return $pdf->download('invoice' . $order->id . "-" . now()->format('Y-m-d') . '.pdf');
     }
 
     /*Order accept api*/
     public function approve(Request $request, $id)
     {
         $order = Order::findOrFail($id);
+        if ($order->status == 'reject') {
+        }
         if ($order->status == 'accept') {
-            return ('This order is already placed');
+            return ('This order is already accepted');
         } else {
 
             $order->update(['status' => 'accept']);
@@ -124,25 +132,21 @@ class OrderController extends Controller
         foreach ($cartItem as $item) {
             $total += ($item->price)  * $item->quantity;
         }
-        if (Invoice::where('order_id', $order->id)->exists()) {
-            return ('duplicate entry');
-        } else {
-            $invoice = Invoice::create([
-                'user_id'         => $order->userOrder->id,
-                'order_id'        => $order->id,
-                'user_address_id' => $order->user_address_id,
-                'order_num'       => $order->order_num,
-                'total_amount'    => $total,
-                'invoice_num'     => Str::random(6),
-            ]);
-            $productData = $invoice->OrderInvoice()->first()->OrderItm()->get();
+        $invoice = Invoice::create([
+            'user_id'         => $order->userOrder->id,
+            'order_id'        => $order->id,
+            'user_address_id' => $order->user_address_id,
+            'order_num'       => $order->order_num,
+            'total_amount'    => $total,
+            'invoice_num'     => Str::random(6),
+        ]);
+        $productData = $invoice->OrderInvoice()->first()->OrderItm()->get();
 
-            $email = $invoice->invoiceUser->email;
+        $email = $invoice->invoiceUser->email;
 
-            Mail::to($email)->send(new InvoiceMail($invoice, $productData));
+        Mail::to($email)->send(new InvoiceMail($invoice, $productData));
 
-            return ok('The Order id accepted', $invoice);
-        }
+        return ok('The Order id accepted', $invoice);
     }
 
     /*Order decline api*/
@@ -181,6 +185,6 @@ class OrderController extends Controller
     public function cancelOrder()
     {
         $cancel = Order::where('status', 'reject')->get();
-        return ok('Canceled order get succesfully', $cancel);
+        return ok('Canceled order list get succesfully', $cancel);
     }
 }

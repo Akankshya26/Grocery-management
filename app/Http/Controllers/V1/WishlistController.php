@@ -26,7 +26,7 @@ class WishlistController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = Wishlist::query()->where('user_id', Auth::id());
+        $query = Wishlist::query()->where('user_id', auth()->user()->id);
 
         /* Pagination */
         $count = $query->count();
@@ -62,33 +62,14 @@ class WishlistController extends Controller
 
         $prod_check = Product::where('id', $product_id)->exists();
         if ($prod_check) {
-            if (Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
+            if (Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()) {
                 return error(' This product is already in wishlist');
             } else {
-                $wish = Wishlist::create($request->only('product_id') + ['user_id' => Auth::id()]);
+                $wish = Wishlist::create($request->only('product_id') + ['user_id' => auth()->user()->id]);
                 return ok('Product added to wishlist successfully', $wish);
             }
         }
     }
-    /**
-     * API of Update wishlist
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  $id
-     */
-    public function update(Request $request, $id)
-    {
-        $this->validate($request, [
-            'user_id'    => 'required|exists:users,id',
-            'product_id' => 'required|exists:products,id'
-        ]);
-
-        $wishlist = Wishlist::findOrFail($id);
-        $wishlist->update($request->only('user_id', 'product_id'));
-
-        return ok('wishlist updated successfully!', $wishlist);
-    }
-
     /**
      * API of Delete wishlist
      *
@@ -98,11 +79,10 @@ class WishlistController extends Controller
     public function delete(Request $request)
     {
 
-
         $product_id = $request->input('product_id'); {
-            if (Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->exists()) {
+            if (Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()) {
 
-                $wish = Wishlist::where('product_id', $product_id)->where('user_id', Auth::id())->first();
+                $wish = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
                 $wish->delete();
                 return ok('Product removed from wishlist successfully');
             }
