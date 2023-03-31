@@ -115,8 +115,9 @@
                     <span>Invoice Id:{{ $order->orderInvoice->invoice_num }}</span> <br>
                     <span>{{ now()->format('Y-m-d') }}</span> <br>
                     {{-- {{ dd($order->userOrder) }} --}}
-                    <span>Zip code :{{ $order->userOrder->UserAddress->first()->zip_code }}</span> <br>
-                    <span>Address:{{ $order->userOrder->UserAddress->first()->address1 }}</span> <br>
+                    {{-- {{ dd($order->userOrder->UserAddress) }} --}}
+                    <span>Zip code :{{ $order->userOrder->userAddress->first()->zip_code }}</span> <br>
+                    <span>Address:{{ $order->userOrder->userAddress->first()->address1 }}</span> <br>
                 </th>
             </tr>
             <tr class="bg-blue">
@@ -151,15 +152,15 @@
                 <td>{{ $order->orderInvoice->payment_status }}</td>
 
                 <td>Address:</td>
-                <td>{{ $order->userOrder->UserAddress->first()->address1 }},
-                    {{ $order->userOrder->UserAddress->first()->address2 }}</td>
+                <td>{{ $order->userOrder->userAddress->first()->address1 }},
+                    {{ $order->userOrder->userAddress->first()->address2 }}</td>
             </tr>
             <tr>
                 <td>Order Status:</td>
                 <td>{{ $order->status }}</td>
 
                 <td>Pin code:</td>
-                <td>{{ $order->userOrder->UserAddress->first()->zip_code }}</td>
+                <td>{{ $order->userOrder->userAddress->first()->zip_code }}</td>
             </tr>
         </tbody>
     </table>

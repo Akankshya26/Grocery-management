@@ -12,11 +12,12 @@ use App\Models\CartItem;
 use App\Mail\InvoiceMail;
 use App\Mail\OrderCancel;
 use App\Models\OrderItems;
+use App\Models\UserAddress;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use App\Models\UserAddress;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
@@ -28,20 +29,29 @@ class OrderController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $order
      */
-    public function list()
+    public function list(Request $request)
     {
-        //order Histoery
-        $order = Order::where('user_id', auth()->user()->id)->with('OrderItm')->get();
+        $this->validate($request, [
+            'start_date' => 'date',
+            'end_date'   => 'date|before_or_equal:start_date'
+        ]);
+        $order = Order::where('user_id', auth()->user()->id)->with('OrderItm');
 
-        return ok('order history', $order);
-    }
-
-    public function partnerOrder()
-    {
-        $product = Product::where('created_by', Auth::id());
-
-        $order = Order::where('user_id', $product->created_by)->first();
-        dd($product);
+        $start = Carbon::parse($request->start_date);
+        $end = Carbon::parse($request->end_date);
+        if ($request->strt_date) {
+            $order->whereDate('created_at', '<=', $end);
+        }
+        if ($request->end_date) {
+            $order->whereDate('created_at', '<=', $start);
+        }
+        $order_history = $order->get();
+        $count = $order_history->count();
+        $data = [
+            'count' => $count,
+            'Order_history' => $order_history,
+        ];
+        return ok('order history', $data);
     }
     /**
      * API of Create order
@@ -52,23 +62,24 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'user_address_id'        => 'required|exist:user_address,id',
+            // 'user_address_id'        => 'exist:user_address,id',
             // 'order_num'              => 'exists:orders,order_num',
         ]);
 
         $user = auth()->user();
         $userAddress = UserAddress::findorfail($request->user_address_id);
         if ($userAddress->user_id != $user->id) {
-            return error('This User Address is not belongs to the authenticated user');
+            return error('This User Address is not belongs to the authenticated user', [], 'validation');
         }
         $cartItem = CartItem::where('user_id', Auth::id());
         $delivery_date = Carbon::now()->addDays(5);
         if ($cartItem->count() == 0) {
-            return error('Your cart is empty');
+            return ok('Your cart is empty');
         } else {
             $order = Order::create($request->only('user_address_id', 'status') +
                 ['order_num' => Str::random(6)] + ['user_id' => Auth::id()] +
                 ['expected_delivery_date' => $delivery_date]);
+
             $cartItem = CartItem::where('user_id', Auth::id())->get();
             // $orderItems = [];
             // $orderItems = $order->OrderItm()->createmany($orderItems);
@@ -104,7 +115,7 @@ class OrderController extends Controller
         return ok('order placed successfully', $data);
     }
 
-    /*Generate Invoice */
+    /*Download Invoice */
     public function downloadInvoice($id)
     {
 
@@ -133,7 +144,7 @@ class OrderController extends Controller
             $total += ($item->price)  * $item->quantity;
         }
         $invoice = Invoice::create([
-            'user_id'         => $order->userOrder->id,
+            'user_id'         => $order->user_id,
             'order_id'        => $order->id,
             'user_address_id' => $order->user_address_id,
             'order_num'       => $order->order_num,
@@ -168,7 +179,7 @@ class OrderController extends Controller
             return ok('The Order id rejected');
         }
     }
-    /*  Track order status with Order_num*/
+    /*  Track order status with Order_num of customer*/
     public function orderStatus($order_num)
     {
         $status = Order::where('order_num', $order_num)->first();
@@ -176,15 +187,68 @@ class OrderController extends Controller
     }
 
     /* Invoice list Of customer*/
-    public function invoiceList()
+    public function invoiceList(Request $request)
     {
-        $query = Invoice::get();
-        return ok('Invoice List get successfully', $query);
+        $this->validate($request, [
+            'start_date' => 'date',
+            'end_date'   => 'date|before_or_equal:start_date'
+        ]);
+        $user = auth()->user();
+        $get_invoice = Invoice::where('user_id', $user->id)->with('OrderItm');
+
+        $start = Carbon::parse($request->start_date);
+        $end = Carbon::parse($request->end_date);
+        if ($request->strt_date) {
+            $get_invoice->whereDate('created_at', '<=', $end);
+        }
+        if ($request->end_date) {
+            $get_invoice->whereDate('created_at', '<=', $start);
+        }
+        $order_history = $get_invoice->get();
+        return ok('Invoice List get successfully',  $order_history);
     }
+
+
     /* Cancel order list*/
-    public function cancelOrder()
+    public function cancelOrder(Request $request)
     {
-        $cancel = Order::where('status', 'reject')->get();
-        return ok('Canceled order list get succesfully', $cancel);
+        $this->validate($request, [
+            'start_date' => 'date',
+            'end_date'   => 'date|before_or_equal:start_date'
+        ]);
+        $cancel_order = Order::where('status', 'reject');
+
+        $start = Carbon::parse($request->start_date);
+        $end = Carbon::parse($request->end_date);
+        if ($request->strt_date) {
+            $cancel_order->whereDate('created_at', '<=', $end);
+        }
+        if ($request->end_date) {
+            $cancel_order->whereDate('created_at', '<=', $start);
+        }
+        $cancel_order_list = $cancel_order->get();
+        return ok('Canceled order list get succesfully',    $cancel_order_list);
+    }
+
+    //Order canceled by customer
+    public function customerCancelOrder(Request $request)
+    {
+        $this->validate($request, [
+            'order_id' => 'exists:orders,id'
+        ]);
+        $currentDate = now()->format('Y-m-d');
+        $order_id = $request->order_id;
+        $order = Order::where('id', $order_id)->where('user_id', auth()->user()->id)->first();
+        if ($order->status == 'reject') {
+            return ok('Your order is already canceled', $order);
+        }
+        if ($order->expected_delivery_date == $currentDate) {
+            return ok('Your order can not be canceled..its not possible!!');
+        } else {
+            $order->status = "reject";
+            $order->canceled_date = DB::raw('CURRENT_DATE');
+            $order->save();
+            return ok('Your order is canceled successfully', $order);
+        }
     }
 }

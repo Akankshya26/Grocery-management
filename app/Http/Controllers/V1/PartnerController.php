@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\User;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -12,8 +13,8 @@ class PartnerController extends Controller
 {
     public function view()
     {
-        $user = User::where('id', auth()->user()->id)->get();
-        return ok('User Profile get succesfully', $user);
+        // $user = User::where('id', auth()->user()->id)->get();
+        return ok('User Profile get succesfully', auth()->user());
     }
     /**
      * API of List partner
@@ -35,10 +36,10 @@ class PartnerController extends Controller
 
         if ($request->search) {
             $query = $query->where('first_name', 'like', "%$request->search%")
-                ->Orwhere('last_name', 'like', "%$request->search%");
+                ->orWhere('last_name', 'like', "%$request->search%");
         }
 
-        if ($request->sort_field || $request->sort_order) {
+        if ($request->sort_field && $request->sort_order) {
             $query = $query->orderBy($request->sort_field, $request->sort_order);
         }
 
@@ -97,13 +98,11 @@ class PartnerController extends Controller
         $this->validate($request, [
             'first_name'        => 'nullable|alpha|max:36',
             'last_name'         => 'nullable|alpha|max:36',
-            'email'             => 'nullable|email|unique:users,email|max:255',
-            'organization_name' => 'required_if:type,partner',
+            'organization_name' => 'string',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name')
-            + ['type' => 'partner']);
+        $user->update($request->only('first_name', 'last_name', 'oragnization_name'));
 
         return ok('Partner updated successfully!', $user);
     }
@@ -115,8 +114,12 @@ class PartnerController extends Controller
      */
     public function delete($id)
     {
-        User::findOrFail($id)->delete();
-
+        $user =  User::findOrFail($id);
+        $product = Product::where('created_by', $user->id);
+        if ($product->count() > 0) {
+            $product->delete();
+        }
+        $user->delete();
         return ok('Partner deleted successfully');
     }
 }

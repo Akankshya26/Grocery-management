@@ -32,10 +32,10 @@ class ProductController extends Controller
             'sub_category_id.*'   => 'exists:sub_categories,id',
 
         ]);
-        $query = Product::query()->with('productRating.user');
-        if ($query->quantity->count() == 0) {
-            return ('Product is out of stock');
-        }
+        $query = Product::query()->with('productRating');
+        // if ($query->quantity->count() == 0) {
+        //     return ('Product is out of stock');
+        // }
 
         if ($request->category_id) {
             $query->whereHas('category', function ($query) use ($request) {
@@ -52,7 +52,7 @@ class ProductController extends Controller
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
         }
-        if ($request->sort_field || $request->sort_order) {
+        if ($request->sort_field && $request->sort_order) {
             $query = $query->orderBy($request->sort_field, $request->sort_order);
         }
 
@@ -101,33 +101,29 @@ class ProductController extends Controller
         // dd($request->all());
         $total = ($request->price + $request->tax) - $request->discount;
         $user = auth()->user();
-        if (!$user->type == 'partner') {
-            return ('You are Not allowed to add products');
-        } else {
-            $product = Product::create($request->only(
-                'category_id',
-                'sub_category_id',
-                'name',
-                'discount',
-                'quantity',
-                'is_emi_available',
-                'is_available',
-                'manufactured_at',
-                'expires_at',
-                'tax'
-            ) + ['price' => $total]);
-            $image = array();
-            if ($request->hasFile('image')) {
+        $product = Product::create($request->only(
+            'category_id',
+            'sub_category_id',
+            'name',
+            'discount',
+            'quantity',
+            'is_emi_available',
+            'is_available',
+            'manufactured_at',
+            'expires_at',
+            'tax'
+        ) + ['price' => $total]);
+        $image = array();
+        if ($request->hasFile('image')) {
 
-                foreach ($request->image as $file) {
-                    $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
-                    $upload_path =  'images/' . $product->id;
-                    $file->storeAs($upload_path, $image_name);
-                    $image[] = [
-                        'product_id' => $product->id,
-                        'image_name' => $image_name,
-                    ];
-                }
+            foreach ($request->image as $file) {
+                $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
+                $upload_path =  'images/' . $product->id;
+                $file->storeAs($upload_path, $image_name);
+                $image[] = [
+                    'product_id' => $product->id,
+                    'image_name' => $image_name,
+                ];
             }
         }
         $product->img()->createMany($image);
@@ -137,11 +133,10 @@ class ProductController extends Controller
     {
         $product = Product::with('img', 'productRating')->findOrFail($id);
         if ($product->quantity->count() == 0) {
-            return ('Product is out of stock');
-        } else {
-
-            return ok('product get successfully', $product);
+            return error('Product is out of stock', [], 'notfound');
         }
+
+        return ok('product get successfully', $product);
     }
     /**
      * API of Update product
@@ -169,7 +164,9 @@ class ProductController extends Controller
         $image_name = array_column($request->image, 'image_name');
         $product = Product::findOrFail($id);
         $data = ImageProduct::where('product_id', $product->id)->whereNotIn('image_name',  $image_name);
-
+        if ($data->count() > 0) {
+            $data->forceDelete();
+        }
         $product->update($request->only(
             'category_id',
             'sub_category_id',
@@ -192,14 +189,14 @@ class ProductController extends Controller
                     'product_id' => $product->id,
                     'image_name' => $image_name,
                 ];
+                ImageProduct::updateOrCreate(
+                    [
+                        'product_id' => $product->id,
+                        'image_name' => $image_name,
+                    ]
+                );
             }
         }
-        ImageProduct::updateOrCreate(
-            [
-                'product_id' => $product->id,
-                'image_name' => $image_name,
-            ]
-        );
         return ok('product updated successfully!', $product->load('img'));
     }
     /**
@@ -217,7 +214,7 @@ class ProductController extends Controller
         return ok('Product  deleted successfully');
     }
 
-
+    //Product list added by partner
     public function partnerProduct()
     {
         $query = Product::query()->where('id', auth()->user()->id)->get();

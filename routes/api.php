@@ -149,7 +149,7 @@ Route::prefix('v1')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('logout', [AuthController::class, 'logout']);
         Route::post('update/{id}', [AuthController::class, 'update']);
-        Route::post('change-password', [AuthController::class, 'updatePassword']);
+        Route::post('change/password', [AuthController::class, 'updatePassword']);
         Route::post('user/view', [AuthController::class, 'view']);
 
 
@@ -185,7 +185,7 @@ Route::prefix('v1')->group(function () {
             });
             Route::controller(OrderController::class)->prefix('order')->group(function () {
                 Route::post('list',  'list');
-                Route::post('order-status/{order_num}', 'orderStatus');
+                Route::post('order/status/{order_num}', 'orderStatus');
                 Route::get('invoice',  'downloadInvoice');
                 Route::post('cancel/orderList',  'cancelOrder');
             });
@@ -193,6 +193,7 @@ Route::prefix('v1')->group(function () {
 
         //Route Group For partner
         Route::group(['prefix' => 'partner', 'middleware' => 'check:partner'], function () {
+            Route::post('user/view', [AuthController::class, 'view']);
             Route::controller(ProductController::class)->prefix('Product')->group(function () {
                 Route::post('create', 'create');
                 Route::get('get/{id}',  'get');
@@ -209,6 +210,9 @@ Route::prefix('v1')->group(function () {
                 Route::get('get/{id}',  'get');
                 Route::post('update/{id}', 'update');
                 Route::post('delete/{id}', 'delete');
+            });
+            Route::controller(AddressTypeController::class)->prefix('AddressType')->group(function () {
+                Route::post('list',  'list');
             });
             Route::controller(ProductRatingController::class)->prefix('rating')->group(function () {
                 Route::post('create', 'create');
@@ -228,9 +232,9 @@ Route::prefix('v1')->group(function () {
                 Route::post('list',  'list');
                 Route::post('create', 'create');
                 Route::get('get/{id}',  'get');
-                Route::post('order-status/{order_num}', 'orderStatus');
+                Route::post('order/status/{order_num}', 'orderStatus');
                 Route::get('invoice',  'downloadInvoice');
-                Route::post('cancel/orderList',  'cancelOrder');
+                Route::post('cancel/order',  'customerCancelOrder');
                 Route::get('invoice/download/{id}/generate',  'downloadInvoice');
                 Route::post('invoice/list',  'invoiceList');
             });

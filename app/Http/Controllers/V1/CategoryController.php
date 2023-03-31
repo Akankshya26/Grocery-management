@@ -30,7 +30,7 @@ class CategoryController extends Controller
             $query = $query->where('name', 'like', "%$request->search%");
         }
 
-        if ($request->sort_field || $request->sort_order) {
+        if ($request->sort_field && $request->sort_order) {
             $query = $query->orderBy($request->sort_field, $request->sort_order);
         }
 
@@ -64,7 +64,6 @@ class CategoryController extends Controller
         $this->validate($request, [
             'name'   => 'required',
             'slug'   => 'required',
-
         ]);
         $category = Category::create($request->only('name', 'slug'));
         return ok('Category created successfully!', $category);
@@ -110,7 +109,11 @@ class CategoryController extends Controller
      */
     public function delete($id)
     {
-        Category::findOrFail($id)->delete();
+        $category = Category::findOrFail($id);
+        if ($category->subCategory()->first()->subProd()->count() > 0) {
+            $category->subCategory()->first()->subProd()->delete();
+        }
+        $category->delete();
 
         return ok('Category deleted successfully');
     }

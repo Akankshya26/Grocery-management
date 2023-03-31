@@ -61,7 +61,7 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
         if (!$user) {
-            return error("User with this email is not found!");
+            return error("User with this email is not found!", [], 'notfound');
         }
         if ($user && Hash::check($request->password, $user->password)) {
             $token = $user->createToken($request->email)->plainTextToken;
@@ -72,7 +72,7 @@ class AuthController extends Controller
             ];
             return ok('User Logged in Succesfully', $data);
         } else {
-            return error("Password is incorrect");
+            return error("Password is incorrect", [], 'notfound');
         }
     }
 
@@ -99,13 +99,11 @@ class AuthController extends Controller
         $this->validate($request, [
             'first_name'        => 'nullable|alpha|max:36',
             'last_name'         => 'nullable|alpha|max:36',
-            'email'             => 'nullable|email|unique:users,email|max:255',
-            'type'              => 'in:admin,partner,customer', //default customer
+            'type'              => 'customer', //default customer
             'organization_name' => 'required_if:type,partner',
-            'rating'            => 'required_if:type,partner',
         ]);
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating'));
+        $user->update($request->only('first_name', 'last_name', 'type', 'oragnization_name'));
 
         return ok('User updated successfully!', $user);
     }
@@ -131,14 +129,13 @@ class AuthController extends Controller
             'new_password' => 'required',
         ]);
 
-
         #Match The Old Password
         if (!Hash::check($request->old_password, auth()->user()->password)) {
             return back()->with("error", "Old Password Doesn't match!");
         }
 
         #Update the new Password
-        User::whereId(auth()->user()->id)->update([
+        auth()->user()->update([
             'password' => Hash::make($request->new_password)
         ]);
         return ok('password updated succesfully');
@@ -166,20 +163,20 @@ class AuthController extends Controller
 
     public function resetPassword(Request $request, $token)
     {
-        $password = Carbon::now()->subMinute(1)->toDateTimeString();
-        PasswordReset::where('created_at', $password)->delete();
         $request->validate([
             'password' => 'required|max:8'
         ]);
+        $password = Carbon::now()->subMinute(1)->toDateTimeString();
+        PasswordReset::where('created_at', $password)->delete();
         $resetPassword = PasswordReset::where('token', $token)->first();
         if (!$resetPassword) {
-            return error('token i is invali or expire');
+            return error('token  is invali or expire', [], 'unauthenticated');
         }
         $user = User::where('email', $resetPassword->email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
 
-        PasswordReset::where('email', $user->email)->delete();
+        $resetPassword->delete();
         return ok('Password Reset successfully');
     }
 }

@@ -79,13 +79,15 @@ class WishlistController extends Controller
     public function delete(Request $request)
     {
 
-        $product_id = $request->input('product_id'); {
-            if (Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()) {
+        $this->validate($request, [
+            'product_id' => 'required|exists:products,id'
+        ]);
+        $wishlist = Wishlist::where('product_id', $request->product_id)->where('user_id', auth()->user()->id)->first();
 
-                $wish = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
-                $wish->delete();
-                return ok('Product removed from wishlist successfully');
-            }
+        if (!$wishlist) {
+            return error('Not found');
         }
+        $wishlist->delete();
+        return ok('Product removed from wishlist successfully');
     }
 }

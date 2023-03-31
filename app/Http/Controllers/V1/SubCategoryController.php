@@ -26,20 +26,15 @@ class SubCategoryController extends Controller
         ]);
 
         /* Get records of perticular category*/
-        if (Category::where('id', $id)->exists()) {
-            $category = Category::where('id', $id)->first();
-            $query = SubCategory::query()->where('category_id', $category->id)->where('status', '0');
-        } else {
-            return error('Category not found');
-        }
+        $query = Category::where('id', $id)->with('subCategory');
 
-
+        // $query = SubCategory::query()->where('category_id', $category->id);
 
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
         }
 
-        if ($request->sort_field || $request->sort_order) {
+        if ($request->sort_field && $request->sort_order) {
             $query = $query->orderBy($request->sort_field, $request->sort_order);
         }
 
@@ -119,8 +114,11 @@ class SubCategoryController extends Controller
      */
     public function delete($id)
     {
-        SubCategory::findOrFail($id)->delete();
-
+        $subCategory = SubCategory::findOrFail($id);
+        if ($subCategory->subProd()->count() > 0) {
+            $subCategory->subProd()->delete();
+        }
+        $subCategory->delete();
         return ok('SubCategory deleted successfully');
     }
 }

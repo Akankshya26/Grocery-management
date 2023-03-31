@@ -64,17 +64,17 @@ class CartItemController extends Controller
         $product_id = $request->input('product_id');
         $prod_check = Product::where('id', $product_id)->first();
         if (!$prod_check) {
-            return error('This product is not available');
+            return error('This product is not available', [], 'notfound');
         }
 
         $prod_wishlist = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
         if (!$prod_wishlist) {
 
-            return error('Your product is not available in wishlist', [], 'validation');
+            return error('Your product is not available in wishlist', [], 'notfound');
         }
         $cart_check = CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
         if ($cart_check) {
-            return error(' This product is already in cart');
+            return error(' This product is already in cart', [], 'forbidden');
         }
         $cartIteam = new CartItem();
         $cartIteam->product_id = $product_id;
@@ -116,8 +116,8 @@ class CartItemController extends Controller
     {
 
         $product_id = $request->input('product_id');
-        if (CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()); {
-            $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->first();
+        $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
+        if ($cartIteam) {
             $cartIteam->delete();
             return ok('product remove from cart succesfullly ');
         }
