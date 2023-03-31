@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\UserAddress;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\UserAddress;
+use Illuminate\Support\Facades\Auth;
 
 class UserAddressController extends Controller
 {
@@ -15,32 +16,11 @@ class UserAddressController extends Controller
      */
     public function list(Request $request)
     {
-        $this->validate($request, [
-            'page'          => 'nullable|integer',
-            'perPage'       => 'nullable|integer',
-            'search'        => 'nullable',
-            'sort_field'    => 'nullable',
-            'sort_order'    => 'nullable|in:asc,desc',
-        ]);
+        $query = UserAddress::query()->where('user_id', auth()->user()->id);
 
-        $query = UserAddress::query();
-
-        if ($request->search) {
-            $query = $query->where('user_id', 'like', "%$request->search%");
-        }
-
-        if ($request->sort_field || $request->sort_order) {
-            $query = $query->orderBy($request->sort_field, $request->sort_order);
-        }
 
         /* Pagination */
         $count = $query->count();
-        if ($request->page && $request->perPage) {
-            $page = $request->page;
-            $perPage = $request->perPage;
-            $query = $query->skip($perPage * ($page - 1))->take($perPage);
-        }
-
         /* Get records */
         $userAddress = $query->get();
 
@@ -60,15 +40,15 @@ class UserAddressController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'user_id'         => 'required|exists:users,id',
+
             'address_type_id' => 'required|exists:address_types,id',
             'address1'        => 'required|string|max:50',
             'address2'        => 'required|string|max:50',
-            'zip_code'        => 'nullable|integer|size:6',
+            'zip_code'        => 'nullable|integer',
             'is_primary'      => 'nullable|boolean'
         ]);
 
-        $userAddress = UserAddress::create($request->only('user_id', 'address_type_id', 'address1', 'address2', 'zip_code', 'is_primary'));
+        $userAddress = auth()->user()->UserAddress()->create($request->only('address_type_id', 'address1', 'address2', 'zip_code', 'is_primary'));
 
         return ok('User Address created successfully!', $userAddress);
     }

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->char('price');
             $table->char('discount');
+            $table->char('quantity');
             $table->boolean('is_emi_available');
             $table->boolean('is_available');
             $table->date('manufactured_at');
@@ -32,6 +33,7 @@ return new class extends Migration
     }
 
     /**
+     *
      * Reverse the migrations.
      */
     public function down(): void

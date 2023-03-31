@@ -11,15 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('product_ratings', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('user_id');
-            $table->char('rating');
-            $table->timestamps();
+            $table->unsignedBigInteger('user_address_id');
+            $table->string('order_num');
+            $table->enum('status', ['pending', 'accept', 'reject', 'out of delivery', 'delivered'])->default('pending');
+            $table->char('expected_delivery_date');
 
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('user_address_id')->references('id')->on('user_addresses')->onDelete('cascade');
         });
     }
 
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('product_ratings');
+        Schema::dropIfExists('orders');
     }
 };

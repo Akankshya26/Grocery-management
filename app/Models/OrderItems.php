@@ -13,21 +13,18 @@ class OrderItems extends Model
     protected $fillable = [
         'order_id',
         'product_id',
-        'amount',
-        'discount',
-        'tax',
+        'price',
         'quantity',
-        'is_gift'
 
     ];
 
     /* Relations */
-    public function orderItems()
+    public function orders()
     {
         return $this->belongsTo(Order::class, 'order_id');
     }
     public function prodOrder()
     {
-        return $this->belongsTo(Product::class, 'product_id', 'id');
+        return $this->belongsTo(Product::class, 'product_id');
     }
 }

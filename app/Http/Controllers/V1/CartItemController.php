@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Wishlist;
+use Illuminate\Support\Facades\Auth;
 
 class CartItemController extends Controller
 {
@@ -25,15 +27,7 @@ class CartItemController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = CartItem::query();
-
-        if ($request->search) {
-            $query = $query->where('product_id', 'like', "%$request->search%");
-        }
-
-        if ($request->sort_field || $request->sort_order) {
-            $query = $query->orderBy($request->sort_field, $request->sort_order);
-        }
+        $query = CartItem::query()->where('user_id', auth()->user()->id);
 
         /* Pagination */
         $count = $query->count();
@@ -44,12 +38,16 @@ class CartItemController extends Controller
         }
 
         /* Get records */
-        $cartIteam = $query->get();
-        $sum = CartItem::sum('amount');
+        $cartItem = $query->get();
+
+        $total = 0;
+        foreach ($cartItem as $item) {
+            $total += ($item->productCart->price)  * $item->quantity;
+        }
         $data = [
             'count'        => $count,
-            'cart items'   => $cartIteam,
-            'Total_amount' => $sum
+            'cart items'   => $cartItem,
+            'Total_amount' => $total
         ];
 
         return ok(' cart iteam  list', $data);
@@ -63,34 +61,30 @@ class CartItemController extends Controller
      */
     public function create(Request $request)
     {
-        $this->validate($request, [
-            'user_id'     => 'required|exists:users,id',
-            'product_id'  => 'required|exists:Products,id',
-            // 'amount'      => 'required|numeric',
-            // 'discount'    => 'required|numeric|between:0,99.99',
-            // 'tax'         => 'required|numeric|between:0,99.99',
-            'quantity'    => 'required|max:10|numeric',
-        ]);
-        $product = Product::findOrFail($request->product_id);
-        $total = (($product->price + $product->tax) - $product->discount) * $request->quantity;
-        $cartIteam = CartItem::create($request->only('user_id', 'product_id', 'quantity')
-            + ['amount' => $total]);
+        $product_id = $request->input('product_id');
+        $prod_check = Product::where('id', $product_id)->first();
+        if (!$prod_check) {
+            return error('This product is not available');
+        }
 
+        $prod_wishlist = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
+        if (!$prod_wishlist) {
 
-        return ok('cart iteam created successfully!', $cartIteam->load('productCart'));
-    }
-
-    /**
-     * API of get perticuler cart Item details
-     *
-     * @param  $id
-     * @return $cartIteam
-     */
-    public function get($id)
-    {
-        $cartIteam = CartItem::with('userCart', 'productCart')->findOrFail($id);
-
-        return ok('cart iteam get successfully', $cartIteam);
+            return error('Your product is not available in wishlist', [], 'validation');
+        }
+        $cart_check = CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
+        if ($cart_check) {
+            return error(' This product is already in cart');
+        }
+        $cartIteam = new CartItem();
+        $cartIteam->product_id = $product_id;
+        $cartIteam->user_id = auth()->user()->id;
+        $cartIteam->quantity = 1;
+        $cartIteam->save();
+        /*Remove product from wishlist after addind in Cart*/
+        $wishlist = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->get();
+        Wishlist::destroy($wishlist);
+        return ok('Product added to cart successfully', $cartIteam);
     }
 
     /**
@@ -102,18 +96,14 @@ class CartItemController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'user_id'     => 'required|exists:users,id',
-            'product_id'  => 'required|exists:Products,id',
-            // 'amount'      => 'required|numeric',
-            // 'discount'    => 'required|numeric',
-            // 'tax'         => 'required|numeric',
+            'user_id'     => 'nullable',
+            'product_id'  => 'nullable',
             'quantity'    => 'required|numeric|max:10',
         ]);
 
-        $cartIteam = CartItem::findOrFail($id);
-        $cartIteam->update($request->only('user_id', 'product_id', 'amount', 'discount', 'tax', 'quantity'));
-
-        return ok('cart iteam  updated successfully!', $cartIteam);
+        $cart_check = CartItem::findOrfail($id);
+        $cart_check->update($request->only('quantity'));
+        return ok('The cart item quantity is updated successfully');
     }
 
     /**
@@ -122,10 +112,14 @@ class CartItemController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @param  $id
      */
-    public function delete($id)
+    public function delete(Request $request)
     {
-        CartItem::findOrFail($id)->delete();
 
-        return ok('cart iteam deleted successfully');
+        $product_id = $request->input('product_id');
+        if (CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()); {
+            $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', Auth::id())->first();
+            $cartIteam->delete();
+            return ok('product remove from cart succesfullly ');
+        }
     }
 }

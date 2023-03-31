@@ -12,7 +12,8 @@ class SubCategory extends Model
     /* Fillable */
     protected $fillable = [
         'category_id',
-        'name'
+        'name',
+        'slug'
     ];
 
     /* Relations */

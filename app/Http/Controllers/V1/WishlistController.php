@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Product;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class WishlistController extends Controller
 {
@@ -24,15 +26,7 @@ class WishlistController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = Wishlist::query();
-
-        if ($request->search) {
-            $query = $query->where('user_id', 'like', "%$request->search%");
-        }
-
-        if ($request->sort_field || $request->sort_order) {
-            $query = $query->orderBy($request->sort_field, $request->sort_order);
-        }
+        $query = Wishlist::query()->where('user_id', auth()->user()->id);
 
         /* Pagination */
         $count = $query->count();
@@ -62,57 +56,36 @@ class WishlistController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'user_id'    => 'required|exists:users,id',
             'product_id' => 'required|exists:products,id'
         ]);
-        // dd($request->only('category_id', 'name'));
-        $wishlist = Wishlist::create($request->only('user_id', 'product_id'));
+        $product_id = $request->input('product_id');
 
-        return ok('wishlist created successfully!', $wishlist);
+        $prod_check = Product::where('id', $product_id)->exists();
+        if ($prod_check) {
+            if (Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()) {
+                return error(' This product is already in wishlist');
+            } else {
+                $wish = Wishlist::create($request->only('product_id') + ['user_id' => auth()->user()->id]);
+                return ok('Product added to wishlist successfully', $wish);
+            }
+        }
     }
-
-    /**
-     * API of get perticuler user Wishlist details
-     *
-     * @param  $id
-     * @return $wishlist
-     */
-    public function get($id)
-    {
-        $wishlist = Wishlist::with('userWishlist', 'productWishlist')->findOrFail($id);
-
-        return ok('wishlist get successfully', $wishlist);
-    }
-
-    /**
-     * API of Update wishlist
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  $id
-     */
-    public function update(Request $request, $id)
-    {
-        $this->validate($request, [
-            'user_id'    => 'required|exists:users,id',
-            'product_id' => 'required|exists:products,id'
-        ]);
-
-        $wishlist = Wishlist::findOrFail($id);
-        $wishlist->update($request->only('user_id', 'product_id'));
-
-        return ok('wishlist updated successfully!', $wishlist);
-    }
-
     /**
      * API of Delete wishlist
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  $id
      */
-    public function delete($id)
+    public function delete(Request $request)
     {
-        Wishlist::findOrFail($id)->delete();
 
-        return ok('wishlist deleted successfully');
+        $product_id = $request->input('product_id'); {
+            if (Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()) {
+
+                $wish = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
+                $wish->delete();
+                return ok('Product removed from wishlist successfully');
+            }
+        }
     }
 }

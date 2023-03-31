@@ -2,24 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\OrderItems;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Order extends Model
 {
     use HasFactory;
-
     /* Fillable */
+    public $timestamps = false;
     protected $fillable = [
         'user_id',
         'product_id',
         'user_address_id',
-        'cart_item_id',
+        'order_num',
         'status',
-        'is_cod',
-        'is_placed',
         'expected_delivery_date',
-        'delivery_date'
+
+
     ];
 
     /* Relations */
@@ -33,10 +33,14 @@ class Order extends Model
     }
     public function OrderItm()
     {
-        return $this->hasMany(Order::class, 'order_id');
+        return $this->hasMany(OrderItems::class, 'order_id');
     }
     public function CArts()
     {
         return $this->belongsTo(CartItem::class);
+    }
+    public function orderInvoice()
+    {
+        return $this->hasOne(Invoice::class, 'order_id');
     }
 }

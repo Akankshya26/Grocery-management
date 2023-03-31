@@ -25,7 +25,7 @@ class CategoryController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = Category::query()->with('subCategory');
+        $query = Category::query();
         if ($request->search) {
             $query = $query->where('name', 'like', "%$request->search%");
         }
@@ -50,7 +50,7 @@ class CategoryController extends Controller
         ];
         // dd($data);
 
-        return ok('category  list', $data);
+        return ok('Category  list', $data);
     }
 
     /**
@@ -62,9 +62,11 @@ class CategoryController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'name' => 'required|unique:categories,name'
+            'name'   => 'required',
+            'slug'   => 'required',
+
         ]);
-        $category = Category::create($request->only('name'));
+        $category = Category::create($request->only('name', 'slug'));
         return ok('Category created successfully!', $category);
     }
 
@@ -76,7 +78,7 @@ class CategoryController extends Controller
      */
     public function get($id)
     {
-        $category = Category::with('subCategory', 'products')->findOrFail($id);
+        $category = Category::findOrFail($id);
 
         return ok('Category get successfully', $category);
     }
@@ -90,13 +92,14 @@ class CategoryController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'name' => 'required|unique:categories,name'
+            'name' => 'required|unique:categories,name',
+            'slug'   => 'required',
         ]);
 
         $category = Category::findOrFail($id);
-        $category->update($request->only('name'));
+        $category->update($request->only('name', 'slug'));
 
-        return ok('category updated successfully!', $category);
+        return ok('Category updated successfully!', $category);
     }
 
     /**

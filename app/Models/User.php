@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use App\Traits\Uuids;
+use App\Models\UserAddress;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,10 +26,16 @@ class User extends Authenticatable
         'type',
         'email',
         'password',
+        'phone',
         'organization_name',
-        'ratings'
+        'ratings',
+        'address1',
+        'address2',
+        'city',
+        'state',
+        'country',
+        'pincode'
     ];
-
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -64,5 +71,16 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function UserAddress()
+    {
+        return $this->hasMany(UserAddress::class, 'user_id');
+    }
+
+    /*get full name of user*/
+    public function getFullNameAttribute()
+    {
+        return $this->first_name . " " . $this->last_name;
     }
 }

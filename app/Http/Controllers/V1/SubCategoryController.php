@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V1;
 
+use App\Models\Category;
 use App\Models\SubCategory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -14,7 +15,7 @@ class SubCategoryController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $subCategory
      */
-    public function list(Request $request)
+    public function list(Request $request, $id)
     {
         $this->validate($request, [
             'page'          => 'nullable|integer',
@@ -24,7 +25,14 @@ class SubCategoryController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = SubCategory::query()->with('categories');
+        /* Get records of perticular category*/
+        if (Category::where('id', $id)->exists()) {
+            $category = Category::where('id', $id)->first();
+            $query = SubCategory::query()->where('category_id', $category->id)->where('status', '0');
+        } else {
+            return error('Category not found');
+        }
+
 
 
         if ($request->search) {
@@ -45,8 +53,6 @@ class SubCategoryController extends Controller
 
         /* Get records */
         $subCategory = $query->get();
-        // dd($subCategory);
-        // $subCategory = $query->where('category_id', $category_id)->with('categories')->get();
 
 
         $data = [
@@ -66,10 +72,11 @@ class SubCategoryController extends Controller
     {
         $this->validate($request, [
             'category_id'    => 'required|exists:categories,id',
-            'name'           => 'required|unique:sub_categories,name'
+            'name'           => 'required|unique:sub_categories,name',
+            'slug'           => 'required'
         ]);
         // dd($request->only('category_id', 'name'));
-        $subCategory = SubCategory::create($request->only('category_id', 'name'));
+        $subCategory = SubCategory::create($request->only('category_id', 'name', 'slug'));
 
         return ok('Sub Category created successfully!', $subCategory);
     }
@@ -95,11 +102,12 @@ class SubCategoryController extends Controller
     {
         $this->validate($request, [
             'category_id'    => 'required|exists:categories,id',
-            'name'           => 'required|unique:sub_categories,name'
+            'name'           => 'required|unique:sub_categories,name',
+            'slug'           => 'required'
         ]);
 
         $subCategory = SubCategory::findOrFail($id);
-        $subCategory->update($request->only('category_id', 'name'));
+        $subCategory->update($request->only('category_id', 'name', 'slug'));
 
         return ok('Sub category updated successfully!', $subCategory);
     }

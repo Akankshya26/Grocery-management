@@ -5,10 +5,16 @@ namespace App\Http\Controllers\V1;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class PartnerController extends Controller
 {
+    public function view()
+    {
+        $user = User::where('id', auth()->user()->id)->get();
+        return ok('User Profile get succesfully', $user);
+    }
     /**
      * API of List partner
      *
@@ -25,10 +31,11 @@ class PartnerController extends Controller
             'sort_order'    => 'nullable|in:asc,desc',
         ]);
 
-        $query = User::query();
+        $query = User::query()->where('type', 'partner');
 
         if ($request->search) {
-            $query = $query->where('type', 'like', "%$request->search%");
+            $query = $query->where('first_name', 'like', "%$request->search%")
+                ->Orwhere('last_name', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {
@@ -67,14 +74,12 @@ class PartnerController extends Controller
             'last_name'         => 'required|alpha|max:36',
             'email'             => 'required|email|unique:users,email|max:255',
             'password'          => 'required|max:8',
-            'type'              => 'in:partner', //default customer
             'organization_name' => 'required_if:type,partner',
-            'rating'            => 'required_if:type,partner',
         ]);
 
-        $user = User::create($request->only('first_name', 'last_name', 'type', 'email', 'organization_name', 'rating') + [
+        $user = User::create($request->only('first_name', 'last_name', 'type', 'email', 'organization_name') + [
             'password' => Hash::make($request->password)
-        ]);
+        ] + ['type' => 'partner']);
         $data = [
             'user'  => $user
         ];
@@ -93,13 +98,12 @@ class PartnerController extends Controller
             'first_name'        => 'nullable|alpha|max:36',
             'last_name'         => 'nullable|alpha|max:36',
             'email'             => 'nullable|email|unique:users,email|max:255',
-            'type'              => 'in:partner',
             'organization_name' => 'required_if:type,partner',
-            'rating'            => 'required_if:type,partner',
         ]);
 
         $user = User::findOrFail($id);
-        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name', 'rating'));
+        $user->update($request->only('first_name', 'last_name', 'type', 'email', 'oragnization_name')
+            + ['type' => 'partner']);
 
         return ok('Partner updated successfully!', $user);
     }

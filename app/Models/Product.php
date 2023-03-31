@@ -14,10 +14,12 @@ class Product extends Model
     protected $fillable = [
         'category_id',
         'sub_category_id',
+
         'name',
         'image',
         'price',
         'discount',
+        'quantity',
         'is_emi_available',
         'is_available',
         'manufactured_at',
@@ -30,16 +32,25 @@ class Product extends Model
     {
         return $this->hasMany(ImageProduct::class, 'product_id');
     }
-    public function prod()
+    public function category()
     {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(Category::class, 'category_id');
     }
     public function prodWishlist()
     {
         return $this->belongsTo(Wishlist::class);
     }
-    public function subProd()
+    public function subCategory()
     {
         return $this->belongsTo(SubCategory::class, 'sub_category_id');
+    }
+
+    public function productRating()
+    {
+        return $this->hasMany(ProductRating::class, 'product_id')->select('id', 'user_id', 'product_id', 'rating');
+    }
+    public function OrderItem()
+    {
+        return $this->hasMany(OrderItems::class, 'product_id');
     }
 }

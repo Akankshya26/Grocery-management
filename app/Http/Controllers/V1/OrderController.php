@@ -2,10 +2,23 @@
 
 namespace App\Http\Controllers\V1;
 
+use PDF;
+use App\Models\User;
 use App\Models\Order;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use App\Mail\OrderMail;
+use App\Models\Invoice;
+use App\Models\Product;
 use App\Models\CartItem;
+use App\Mail\InvoiceMail;
+use App\Mail\OrderCancel;
+use App\Models\OrderItems;
+use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Http\Controllers\Controller;
+use App\Models\UserAddress;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -15,43 +28,20 @@ class OrderController extends Controller
      *@param  \Illuminate\Http\Request  $request
      *@return $order
      */
-    public function list(Request $request)
+    public function list()
     {
-        $this->validate($request, [
-            'page'          => 'nullable|integer',
-            'perPage'       => 'nullable|integer',
-            'search'        => 'nullable',
-            'sort_field'    => 'nullable',
-            'sort_order'    => 'nullable|in:asc,desc',
-        ]);
+        //order Histoery
+        $order = Order::where('user_id', auth()->user()->id)->with('OrderItm')->get();
 
-        $query = Order::query();
+        return ok('order history', $order);
+    }
 
-        if ($request->search) {
-            $query = $query->where('product_id', 'like', "%$request->search%");
-        }
+    public function partnerOrder()
+    {
+        $product = Product::where('created_by', Auth::id());
 
-        if ($request->sort_field || $request->sort_order) {
-            $query = $query->orderBy($request->sort_field, $request->sort_order);
-        }
-
-        /* Pagination */
-        $count = $query->count();
-        if ($request->page && $request->perPage) {
-            $page = $request->page;
-            $perPage = $request->perPage;
-            $query = $query->skip($perPage * ($page - 1))->take($perPage);
-        }
-
-        /* Get records */
-        $order = $query->get();
-
-        $data = [
-            'count'   => $count,
-            'orders'  => $order
-        ];
-
-        return ok(' order  list', $data);
+        $order = Order::where('user_id', $product->created_by)->first();
+        dd($product);
     }
     /**
      * API of Create order
@@ -62,101 +52,139 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $this->validate($request, [
-            'user_id'                => 'required|exists:users,id',
-            'product_id'             => 'required|exists:products,id',
-            'cart_item_id'           => 'required|exists:cart_items,id',
-            'user_address_id'        => 'required|exists:user_addresses,id',
-            // 'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
-            'is_cod'                 => 'nullable|boolean',
-            'is_placed'              => 'nullable|boolean',
-            'expected_delivery_date' => 'required|date',
-            'delivery_date'          => 'required|date'
-
+            'user_address_id'        => 'required|exist:user_address,id',
+            // 'order_num'              => 'exists:orders,order_num',
         ]);
-        $cart_items = CartItem::findOrFail($request->cart_item_id);
-        // dd($cart_items->product_id);
-        if ($request->is_placed == 1) {
-            if ($request->product_id == $cart_items->product_id) {
-                $cart_items->delete();
+
+        $user = auth()->user();
+        $userAddress = UserAddress::findorfail($request->user_address_id);
+        if ($userAddress->user_id != $user->id) {
+            return error('This User Address is not belongs to the authenticated user');
+        }
+        $cartItem = CartItem::where('user_id', Auth::id());
+        $delivery_date = Carbon::now()->addDays(5);
+        if ($cartItem->count() == 0) {
+            return error('Your cart is empty');
+        } else {
+            $order = Order::create($request->only('user_address_id', 'status') +
+                ['order_num' => Str::random(6)] + ['user_id' => Auth::id()] +
+                ['expected_delivery_date' => $delivery_date]);
+            $cartItem = CartItem::where('user_id', Auth::id())->get();
+            // $orderItems = [];
+            // $orderItems = $order->OrderItm()->createmany($orderItems);
+            foreach ($cartItem as $item) {
+                $orderItems = OrderItems::create([
+                    'order_id'   => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity'   => $item->quantity,
+                    'price'      => $item->productCart->price,
+                ]);
+
+                /*email send to partnrs*/
+                $partner = $orderItems->prodOrder->created_by;
+                $user = User::findOrFail($partner);
+                Mail::to($user->email)->send(new OrderMail($orderItems, $user));
             }
         }
+        /*Remove from cart after order placed*/
+        $cartItem = CartItem::where('user_id', Auth::id())->get();
+        CartItem::destroy($cartItem);
 
-        $order = Order::create($request->only('user_id', 'product_id', 'cart_item_id', 'user_address_id',  'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
-
-        return ok('order created successfully!', $order);
-    }
-
-    /**
-     * API of get perticuler order details
-     *
-     * @param  $id
-     * @return $order
-     */
-    public function get($id)
-    {
-        $order = Order::with('userOrder', 'productOrder')->findOrFail($id);
-
-        return ok('order get successfully', $order);
-    }
-    /**
-     * API of Update order
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  $id
-     */
-    public function update(Request $request, $id)
-    {
-        $this->validate($request, [
-            'user_id'                => 'required|exists:users,id',
-            'product_id'             => 'required|exists:products,id',
-            'user_address_id'        => 'required|exists:user_addresses,id',
-            'status'                 => 'required|in:Pending,Dispached,in_transit,Delivered',
-            'is_cod'                 => 'nullable|boolean',
-            'is_placed'              => 'nullable|boolean',
-            'expected_delivery_date' => 'required|date',
-            'delivery_date'          => 'required|date'
-
-        ]);
-        $cart_items = CartItem::findOrFail($request->cart_item_id);
-        // dd($cart_items->product_id);
-        if ($request->is_placed == 1) {
-            if ($request->product_id == $cart_items->product_id) {
-                $cart_items->delete();
-            }
+        $total = 0;
+        foreach ($cartItem as $item) {
+            $total += ($item->productCart->price)  * $item->quantity;
         }
+
+        $data = [
+            'cart items' =>  $cartItem,
+            'order details' => $order,
+            'total amount' => $total
+
+        ];
+        return ok('order placed successfully', $data);
+    }
+
+    /*Generate Invoice */
+    public function downloadInvoice($id)
+    {
+
         $order = Order::findOrFail($id);
-        $order->update($request->only('user_id', 'product_id', 'user_address_id', 'status', 'is_cod', 'is_placed', 'expected_delivery_date', 'delivery_date'));
-
-        return ok('order updated successfully!', $order);
-    }
-    /**
-     * API of Delete Order
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  $id
-     */
-    public function delete($id)
-    {
-        Order::findOrFail($id)->delete();
-
-        return ok('Order deleted successfully');
+        $item = $order->OrderItm()->get();
+        $data = ['order' => $order, 'item' => $item];
+        $pdf = PDF::loadView('mail_pdf', $data);
+        return $pdf->download('invoice' . $order->id . "-" . now()->format('Y-m-d') . '.pdf');
     }
 
-    /**
-     * API of Update order status
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  $id
-     */
-    public function statusUpdate(Request $request, $id)
+    /*Order accept api*/
+    public function approve(Request $request, $id)
     {
-        $this->validate($request, [
-            'status'    => 'required|in:Dispached,in_transit,Delivered',
+        $order = Order::findOrFail($id);
+        if ($order->status == 'reject') {
+        }
+        if ($order->status == 'accept') {
+            return ('This order is already accepted');
+        } else {
+
+            $order->update(['status' => 'accept']);
+        }
+        $cartItem = $order->OrderItm;
+        $total = 0;
+        foreach ($cartItem as $item) {
+            $total += ($item->price)  * $item->quantity;
+        }
+        $invoice = Invoice::create([
+            'user_id'         => $order->userOrder->id,
+            'order_id'        => $order->id,
+            'user_address_id' => $order->user_address_id,
+            'order_num'       => $order->order_num,
+            'total_amount'    => $total,
+            'invoice_num'     => Str::random(6),
         ]);
+        $productData = $invoice->OrderInvoice()->first()->OrderItm()->get();
 
+        $email = $invoice->invoiceUser->email;
+
+        Mail::to($email)->send(new InvoiceMail($invoice, $productData));
+
+        return ok('The Order id accepted', $invoice);
+    }
+
+    /*Order decline api*/
+    public function decline($id)
+    {
         $order = Order::findOrFail($id);
-        $order->update($request->only('status'));
+        if ($order->status == 'accept') {
+            return ('This order is already placed');
+        }
+        if ($order->status == 'reject') {
+            return ('This order is already reject');
+        } else {
+            $order->update(['status' => 'reject']);
+            $order->save();
+            $email = $order->userOrder->email;
+            $userName = $order->OrderItm->first()->prodOrder->created_by;
+            $user = User::findorfail($userName);
+            Mail::to($email)->send(new OrderCancel($order, $user));
+            return ok('The Order id rejected');
+        }
+    }
+    /*  Track order status with Order_num*/
+    public function orderStatus($order_num)
+    {
+        $status = Order::where('order_num', $order_num)->first();
+        return ok('The status Of the order is', $status->status);
+    }
 
-        return ok('status updated successfully!', $order);
+    /* Invoice list Of customer*/
+    public function invoiceList()
+    {
+        $query = Invoice::get();
+        return ok('Invoice List get successfully', $query);
+    }
+    /* Cancel order list*/
+    public function cancelOrder()
+    {
+        $cancel = Order::where('status', 'reject')->get();
+        return ok('Canceled order list get succesfully', $cancel);
     }
 }
