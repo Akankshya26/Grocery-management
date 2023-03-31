@@ -100,32 +100,36 @@ class ProductController extends Controller
         ]);
         // dd($request->all());
         $total = ($request->price + $request->tax) - $request->discount;
-        $product = Product::create($request->only(
-            'category_id',
-            'sub_category_id',
-            'name',
-            'discount',
-            'quantity',
-            'is_emi_available',
-            'is_available',
-            'manufactured_at',
-            'expires_at',
-            'tax'
-        ) + ['price' => $total]);
-        $image = array();
-        if ($request->hasFile('image')) {
+        $user = auth()->user();
+        if (!$user->type == 'partner') {
+            return ('You are Not allowed to add products');
+        } else {
+            $product = Product::create($request->only(
+                'category_id',
+                'sub_category_id',
+                'name',
+                'discount',
+                'quantity',
+                'is_emi_available',
+                'is_available',
+                'manufactured_at',
+                'expires_at',
+                'tax'
+            ) + ['price' => $total]);
+            $image = array();
+            if ($request->hasFile('image')) {
 
-            foreach ($request->image as $file) {
-                $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
-                $upload_path =  'images/' . $product->id;
-                $file->storeAs($upload_path, $image_name);
-                $image[] = [
-                    'product_id' => $product->id,
-                    'image_name' => $image_name,
-                ];
+                foreach ($request->image as $file) {
+                    $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
+                    $upload_path =  'images/' . $product->id;
+                    $file->storeAs($upload_path, $image_name);
+                    $image[] = [
+                        'product_id' => $product->id,
+                        'image_name' => $image_name,
+                    ];
+                }
             }
         }
-
         $product->img()->createMany($image);
         return ok('Product created successfully!',  $product->load('img'));
     }
@@ -161,9 +165,11 @@ class ProductController extends Controller
             'expires_at'       => 'nullable|after:manufactured_at',
             'tax'              => 'nullable|numeric|between:0,99.99'
         ]);
-
         $total = ($request->price + $request->tax) - $request->discount;
+        $image_name = array_column($request->image, 'image_name');
         $product = Product::findOrFail($id);
+        $data = ImageProduct::where('product_id', $product->id)->whereNotIn('image_name',  $image_name);
+
         $product->update($request->only(
             'category_id',
             'sub_category_id',
@@ -176,12 +182,9 @@ class ProductController extends Controller
             'expires_at',
             'tax'
         ) + ['price' => $total]);
-        // dd($product);
         $image = array();
         if ($request->hasFile('image')) {
             $upload_path =  'images/' . $product->id;
-            // Storage::delete('images/' . $product->id);
-            // $product->img()->delete();
             foreach ($request->image as $file) {
                 $image_name =  str_replace(".", "", (string)microtime(true)) . '.' . $file->getClientOriginalExtension();
                 $file->storeAs($upload_path, $image_name);
@@ -191,7 +194,12 @@ class ProductController extends Controller
                 ];
             }
         }
-        $product->img()->createMany($image);
+        ImageProduct::updateOrCreate(
+            [
+                'product_id' => $product->id,
+                'image_name' => $image_name,
+            ]
+        );
         return ok('product updated successfully!', $product->load('img'));
     }
     /**

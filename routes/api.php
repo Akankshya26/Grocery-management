@@ -1,20 +1,21 @@
 <?php
 
-use App\Http\Controllers\V1\InvoiceController;
-use App\Http\Controllers\V1\OrderItemsController;
-use App\Http\Controllers\V1\OrderController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\V1\AuthController;
 use App\Http\Controllers\V1\UserController;
 use App\Http\Controllers\V1\ImageController;
+use App\Http\Controllers\V1\OrderController;
+use App\Http\Controllers\V1\InvoiceController;
 use App\Http\Controllers\V1\PartnerController;
 use App\Http\Controllers\V1\ProductController;
-use App\Http\Controllers\V1\CategoryController;
-use App\Http\Controllers\V1\AddressTypeController;
 use App\Http\Controllers\V1\CartItemController;
-use App\Http\Controllers\V1\ProductRatingController;
+use App\Http\Controllers\V1\CategoryController;
+use App\Http\Controllers\V1\WishlistController;
+use App\Http\Controllers\V1\OrderItemsController;
+use App\Http\Controllers\V1\AddressTypeController;
 use App\Http\Controllers\V1\SubCategoryController;
 use App\Http\Controllers\V1\UserAddressController;
-use App\Http\Controllers\V1\WishlistController;
+use App\Http\Controllers\V1\ProductRatingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -210,7 +211,6 @@ Route::prefix('v1')->group(function () {
                 Route::post('delete/{id}', 'delete');
             });
             Route::controller(ProductRatingController::class)->prefix('rating')->group(function () {
-                Route::post('list',  'list');
                 Route::post('create', 'create');
             });
             Route::controller(WishlistController::class)->prefix('wishlist')->group(function () {
@@ -221,7 +221,7 @@ Route::prefix('v1')->group(function () {
             Route::controller(CartItemController::class)->prefix('cart')->group(function () {
                 Route::post('list',  'list');
                 Route::post('create', 'create');
-                Route::post('update/{id}', 'update');
+                Route::post('update/{id}', 'update'); //only product quantity
                 Route::post('delete', 'delete');
             });
             Route::controller(OrderController::class)->prefix('order')->group(function () {

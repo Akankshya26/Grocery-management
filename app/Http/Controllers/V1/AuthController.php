@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\V1;
 
 use App\Models\User;
+use App\Mail\WelcomeMAil;
 use Illuminate\Support\Str;
-use App\Mail\InvitationMail;
 use Illuminate\Http\Request;
 use App\Models\PasswordReset;
 use Illuminate\Support\Carbon;
-use App\Http\Controllers\Controller;
 use App\Mail\ForgotPasswordMail;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -42,7 +42,7 @@ class AuthController extends Controller
         $user = User::create($request->only('first_name', 'last_name', 'type', 'email') + [
             'password' => Hash::make($request->password)
         ] + ['phone' => $request->phone]);
-        Mail::to($user->email)->send(new InvitationMail($user));
+        Mail::to($user->email)->send(new WelcomeMAil($user));
         return ok("User registered successfully!", $user);
     }
 

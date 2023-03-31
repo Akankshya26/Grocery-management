@@ -34,7 +34,8 @@ class PartnerController extends Controller
         $query = User::query()->where('type', 'partner');
 
         if ($request->search) {
-            $query = $query->where('name', 'like', "%$request->search%");
+            $query = $query->where('first_name', 'like', "%$request->search%")
+                ->Orwhere('last_name', 'like', "%$request->search%");
         }
 
         if ($request->sort_field || $request->sort_order) {
@@ -74,10 +75,9 @@ class PartnerController extends Controller
             'email'             => 'required|email|unique:users,email|max:255',
             'password'          => 'required|max:8',
             'organization_name' => 'required_if:type,partner',
-            'rating'            => 'required_if:type,partner',
         ]);
 
-        $user = User::create($request->only('first_name', 'last_name', 'type', 'email', 'organization_name', 'rating') + [
+        $user = User::create($request->only('first_name', 'last_name', 'type', 'email', 'organization_name') + [
             'password' => Hash::make($request->password)
         ] + ['type' => 'partner']);
         $data = [
