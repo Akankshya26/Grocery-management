@@ -18,7 +18,6 @@ class UserAddressController extends Controller
     {
         $query = UserAddress::query()->where('user_id', auth()->user()->id);
 
-
         /* Pagination */
         $count = $query->count();
         /* Get records */

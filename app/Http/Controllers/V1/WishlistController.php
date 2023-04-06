@@ -58,11 +58,10 @@ class WishlistController extends Controller
         $this->validate($request, [
             'product_id' => 'required|exists:products,id'
         ]);
-        $product_id = $request->input('product_id');
 
-        $prod_check = Product::where('id', $product_id)->exists();
+        $prod_check = Product::where('id', $request->product_id)->exists();
         if ($prod_check) {
-            if (Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->exists()) {
+            if (Wishlist::where('product_id',  $request->product_id)->where('user_id', auth()->user()->id)->exists()) {
                 return error(' This product is already in wishlist');
             } else {
                 $wish = Wishlist::create($request->only('product_id') + ['user_id' => auth()->user()->id]);
@@ -85,7 +84,6 @@ class WishlistController extends Controller
         $wishlist = Wishlist::where('product_id', $request->product_id)->where('user_id', auth()->user()->id)->first();
 
         if (!$wishlist) {
-            return error('Not found');
         }
         $wishlist->delete();
         return ok('Product removed from wishlist successfully');

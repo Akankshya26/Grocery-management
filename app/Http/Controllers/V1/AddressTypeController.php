@@ -30,16 +30,16 @@ class AddressTypeController extends Controller
             $query = $query->where('name', 'like', "%$request->search%");
         }
 
-        if ($request->sort_field || $request->sort_order) {
+        if ($request->sort_field && $request->sort_order) {
             $query = $query->orderBy($request->sort_field, $request->sort_order);
         }
 
         /* Pagination */
         $count = $query->count();
         if ($request->page && $request->perPage) {
-            $page = $request->page;
+            $page    = $request->page;
             $perPage = $request->perPage;
-            $query = $query->skip($perPage * ($page - 1))->take($perPage);
+            $query   = $query->skip($perPage * ($page - 1))->take($perPage);
         }
 
         /* Get records */

@@ -114,8 +114,6 @@
                 <th width="50%" colspan="2" class="text-end company-data">
                     <span>Invoice Id:{{ $order->orderInvoice->invoice_num }}</span> <br>
                     <span>{{ now()->format('Y-m-d') }}</span> <br>
-                    {{-- {{ dd($order->userOrder) }} --}}
-                    {{-- {{ dd($order->userOrder->UserAddress) }} --}}
                     <span>Zip code :{{ $order->userOrder->userAddress->first()->zip_code }}</span> <br>
                     <span>Address:{{ $order->userOrder->userAddress->first()->address1 }}</span> <br>
                 </th>
@@ -178,32 +176,33 @@
                 <th>Price</th>
                 <th>Quantity</th>
                 <th>Discount</th>
+                <th>tax</th>
                 <th>Total</th>
             </tr>
         </thead>
         <tbody>
+
             @foreach ($item as $product)
                 <tr>
-                    <td width="10%">{{ $product->prodOrder->id }}</td>
+                    <td scope="row">{{ $loop->iteration }} </td>
                     <td>
                         {{ $product->prodOrder->name }}
                     </td>
-                    <td width="10%">{{ $product->prodOrder->price }}</td>
-                    <td width="10%">{{ $product->quantity }}</td>
-                    <td width="10%">{{ $product->discount }}</td>
-                    <td width="15%" class="fw-bold">{{ $product->prodOrder->price * $product->quantity }}
+                    <td width="10%">{{ $product->price }}</td>
+                    <td width="10%">{{ $product->quantity }}{{ $product->unit }}</td>
+                    <td width="10%">{{ $product->prodOrder->discount }}%</td>
+                    <td width="10%">{{ $product->prodOrder->tax }}%</td>
+                    <td width="15%" class="fw-bold">{{ $product->price }}
                     </td>
                 </tr>
             @endforeach
             <tr>
-                <td colspan="5" class="total-heading">Total Amount - <small>Inc. all vat/tax</small> :</td>
+                <td colspan="6" class="total-heading">Total Amount - <small>Inc. all vat/tax</small> :</td>
                 <td colspan="1" class="total-heading">{{ $order->orderInvoice->total_amount }}
                 </td>
             </tr>
         </tbody>
     </table>
-
-
     <br>
     <p class="text-center">
         Thank your for shopping

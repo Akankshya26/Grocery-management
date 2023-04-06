@@ -32,22 +32,30 @@ class CartItemController extends Controller
         /* Pagination */
         $count = $query->count();
         if ($request->page && $request->perPage) {
-            $page = $request->page;
+            $page    = $request->page;
             $perPage = $request->perPage;
-            $query = $query->skip($perPage * ($page - 1))->take($perPage);
+            $query   = $query->skip($perPage * ($page - 1))->take($perPage);
         }
 
         /* Get records */
         $cartItem = $query->get();
 
-        $total = 0;
+
+        $sum = 0;
         foreach ($cartItem as $item) {
-            $total += ($item->productCart->price)  * $item->quantity;
+            if ($item->unit == 'kg' || $item->unit == 'L' || $item->unit == 'num') {
+                $price = $item->productCart->price * $item->quantity;
+            }
+            if ($item->unit == 'g' || $item->unit == 'ml') {
+                $PPG = $item->productCart->price / 1000; //PPG=price per gram
+                $price = $PPG * $item->quantity;
+            }
+            $sum +=  $price;
         }
         $data = [
             'count'        => $count,
             'cart items'   => $cartItem,
-            'Total_amount' => $total
+            'Total_amount' =>  $sum
         ];
 
         return ok(' cart iteam  list', $data);
@@ -61,30 +69,32 @@ class CartItemController extends Controller
      */
     public function create(Request $request)
     {
-        $product_id = $request->input('product_id');
-        $prod_check = Product::where('id', $product_id)->first();
+        $prod_check = Product::where('id', $request->product_id)->first();
         if (!$prod_check) {
-            return error('This product is not available', [], 'notfound');
+            return ok('This product is not available');
         }
-
-        $prod_wishlist = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
+        if ($prod_check->quantity == 0) {
+            return ok('This Product is out of stuck');
+        }
+        $prod_wishlist = Wishlist::where('product_id', $request->product_id)->where('user_id', auth()->user()->id)->first();
         if (!$prod_wishlist) {
 
-            return error('Your product is not available in wishlist', [], 'notfound');
+            return ok('Your product is not available in wishlist');
         }
-        $cart_check = CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
+        $cart_check = CartItem::where('product_id', $request->product_id)->where('user_id', auth()->user()->id)->first();
         if ($cart_check) {
-            return error(' This product is already in cart', [], 'forbidden');
+            return ok(' This product is already in cart');
         }
-        $cartIteam = new CartItem();
-        $cartIteam->product_id = $product_id;
-        $cartIteam->user_id = auth()->user()->id;
-        $cartIteam->quantity = 1;
-        $cartIteam->save();
+        $cartItem = new CartItem();
+        $cartItem->product_id = $request->product_id;
+        $cartItem->user_id = auth()->user()->id;
+        $cartItem->quantity = $request->quantity;
+        $cartItem->unit = $request->unit;
+        $cartItem->save();
         /*Remove product from wishlist after addind in Cart*/
-        $wishlist = Wishlist::where('product_id', $product_id)->where('user_id', auth()->user()->id)->get();
+        $wishlist = Wishlist::where('product_id', $request->product_id)->where('user_id', auth()->user()->id)->get();
         Wishlist::destroy($wishlist);
-        return ok('Product added to cart successfully', $cartIteam);
+        return ok('Product added to cart successfully', $cartItem);
     }
 
     /**
@@ -98,11 +108,12 @@ class CartItemController extends Controller
         $this->validate($request, [
             'user_id'     => 'nullable',
             'product_id'  => 'nullable',
-            'quantity'    => 'required|numeric|max:10',
+            'quantity'    => 'required|numeric',
+            'unit'        => 'required|in:kg,g,num,L,ml'
         ]);
 
         $cart_check = CartItem::findOrfail($id);
-        $cart_check->update($request->only('quantity'));
+        $cart_check->update($request->only('quantity', 'unit'));
         return ok('The cart item quantity is updated successfully');
     }
 
@@ -115,10 +126,9 @@ class CartItemController extends Controller
     public function delete(Request $request)
     {
 
-        $product_id = $request->input('product_id');
-        $cartIteam = CartItem::where('product_id', $product_id)->where('user_id', auth()->user()->id)->first();
-        if ($cartIteam) {
-            $cartIteam->delete();
+        $cartItem = CartItem::where('product_id', $request->product_id)->where('user_id', auth()->user()->id)->first();
+        if ($cartItem) {
+            $cartItem->delete();
             return ok('product remove from cart succesfullly ');
         }
     }

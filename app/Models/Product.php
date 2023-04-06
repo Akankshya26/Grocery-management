@@ -28,7 +28,7 @@ class Product extends Model
     ];
 
     /* Relations */
-    public function img()
+    public function images()
     {
         return $this->hasMany(ImageProduct::class, 'product_id');
     }
@@ -52,5 +52,10 @@ class Product extends Model
     public function OrderItem()
     {
         return $this->hasMany(OrderItems::class, 'product_id');
+    }
+
+    public function carts()
+    {
+        return $this->hasMany(CartItem::class, 'product_id');
     }
 }

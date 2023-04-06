@@ -11,22 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('user_address_id');
-            $table->unsignedBigInteger('order_id');
-            // $table->unsignedBigInteger('product_id');
-            $table->char('total_amount');
-            $table->string('invoice_num');
+            $table->unsignedBigInteger('coupon_id')->nullable();
             $table->string('order_num');
-            $table->enum('payment_status', ['Pending', 'Done']);
-
+            $table->enum('status', ['pending', 'accept', 'reject', 'out of delivery', 'delivered', 'canceled'])->default('pending');
+            $table->char('expected_delivery_date');
+            $table->char('total_amount');
+            $table->date('canceled_date');
             $table->timestamps();
+
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('user_address_id')->references('id')->on('user_addresses')->onDelete('cascade');
-            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
-            // $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('coupon_id')->references('id')->on('coupons')->onDelete('cascade');
         });
     }
 
@@ -35,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invoices');
+        Schema::dropIfExists('orders');
     }
 };

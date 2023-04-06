@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('product_id');
             $table->char('price');
             $table->char('quantity');
+            $table->enum('unit', ['kg', 'g', 'num', 'L', 'ml']);
 
             $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');

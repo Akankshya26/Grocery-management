@@ -177,6 +177,7 @@
                 <th>Price</th>
                 <th>Quantity</th>
                 <th>Discount</th>
+                <th>tax</th>
                 <th>Total</th>
             </tr>
         </thead>
@@ -185,19 +186,18 @@
         <tbody>
             @foreach ($productData as $data)
                 <tr>
-                    <td width="10%">{{ $data->prodOrder->id }}</td>
-                    <td>
-                        {{ $data->prodOrder->name }}
-                    </td>
+                    <td scope="row">{{ $loop->iteration }} </td>
+                    <td>{{ $data->prodOrder->name }} </td>
                     <td width="10%">{{ $data->price }}</td>
-                    <td width="10%">{{ $data->quantity }}</td>
+                    <td width="10%">{{ $data->quantity }}{{ $data->unit }}</td>
                     <td width="10%">{{ $data->prodOrder->discount }}</td>
-                    <td width="15%" class="fw-bold">{{ $data->price * $data->quantity }}
+                    <td width="10%">{{ $data->prodOrder->tax }}</td>
+                    <td width="15%" class="fw-bold">{{ $data->price }}
                     </td>
                 </tr>
             @endforeach
             <tr>
-                <td colspan="5" class="total-heading">Total Amount - <small>Inc. all vat/tax</small> :</td>
+                <td colspan="6" class="total-heading">Total Amount - <small>Inc. all vat/tax</small> :</td>
                 <td colspan="1" class="total-heading">{{ $invoice->total_amount }}
                 </td>
             </tr>
@@ -210,6 +210,7 @@
         Thank your for shopping
     </p>
 
+    {{-- <a href="{{ route('invoice.download', $invoice->id) }}"><button class="button">Download</button></a> --}}
 </body>
 
 </html>

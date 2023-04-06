@@ -11,17 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders', function (Blueprint $table) {
+        Schema::create('invoices', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('user_address_id');
+            $table->unsignedBigInteger('order_id');
+            $table->char('total_amount');
+            $table->string('invoice_num');
             $table->string('order_num');
-            $table->enum('status', ['pending', 'accept', 'reject', 'out of delivery', 'delivered'])->default('pending');
-            $table->char('expected_delivery_date');
+            $table->enum('payment_status', ['Pending', 'Done']);
 
-
+            $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('user_address_id')->references('id')->on('user_addresses')->onDelete('cascade');
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
         });
     }
 
@@ -30,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders');
+        Schema::dropIfExists('invoices');
     }
 };

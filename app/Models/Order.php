@@ -15,9 +15,11 @@ class Order extends Model
         'user_id',
         'product_id',
         'user_address_id',
+        'coupon_id',
         'order_num',
         'status',
         'expected_delivery_date',
+        'total_amount'
 
 
     ];
@@ -42,5 +44,9 @@ class Order extends Model
     public function orderInvoice()
     {
         return $this->hasOne(Invoice::class, 'order_id');
+    }
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
     }
 }

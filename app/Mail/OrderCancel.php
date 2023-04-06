@@ -12,14 +12,15 @@ use Illuminate\Queue\SerializesModels;
 class OrderCancel extends Mailable
 {
     use Queueable, SerializesModels;
-    public $order, $user;
+    public  $item, $user, $order;
     /**
      * Create a new message instance.
      */
-    public function __construct($order, $user)
+    public function __construct($item, $user, $order)
     {
-        $this->order = $order;
+        $this->item =  $item;
         $this->user = $user;
+        $this->order = $order;
     }
 
     /**

@@ -114,7 +114,7 @@ class PartnerController extends Controller
      */
     public function delete($id)
     {
-        $user =  User::findOrFail($id);
+        $user    =  User::findOrFail($id);
         $product = Product::where('created_by', $user->id);
         if ($product->count() > 0) {
             $product->delete();

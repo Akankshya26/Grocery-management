@@ -17,11 +17,10 @@ use Illuminate\Support\Facades\Session;
 
 class AuthController extends Controller
 {
-
+    //Customer Profile view
     public function view()
     {
-        $user = User::where('id', auth()->user()->id)->get();
-        return ok('User Profile get succesfully', $user);
+        return ok('User Profile get succesfully', auth()->user());
     }
     /**
      * API of User registration
